@@ -19,14 +19,28 @@ from src.core.settings import (
 from src.scenes.base_scene import BaseScene
 
 
-DEFAULT_NEKO_IDLE_CONFIG = {
-    "frame_files": [
-        "assets/images/characters/idle_1.png",
-        "assets/images/characters/idle_2.png",
-        "assets/images/characters/idle_3.png",
-    ],
-    "target_height": 180,
-    "frame_duration": 0.22,
+DEFAULT_NEKO_ANIMATIONS = {
+    "idle": {
+        "frame_files": [
+            "assets/images/characters/idle_1.png",
+            "assets/images/characters/idle_2.png",
+            "assets/images/characters/idle_3.png",
+        ],
+        "target_height": 180,
+        "frame_duration": 0.22,
+    },
+    "walk": {
+        "frame_files": [
+            "assets/images/characters/walk_1.png",
+            "assets/images/characters/walk_2.png",
+            "assets/images/characters/walk_3.png",
+            "assets/images/characters/walk_4.png",
+            "assets/images/characters/walk_5.png",
+        ],
+        "target_height": 160,
+        "frame_duration": 0.12,
+        "move_speed": 90,
+    },
 }
 
 
@@ -37,21 +51,26 @@ class MenuScene(BaseScene):
         self.title_font: pygame.font.Font | None = None
         self.body_font: pygame.font.Font | None = None
         self.data_manager = DataManager()
-        self.neko_idle_config = self._load_neko_idle_config()
+        self.neko_animation_configs = self._load_neko_animation_configs()
+        self.neko_animation_name = "walk"
         self.neko_frames: list[pygame.Surface] = []
         self.current_frame_index = 0
         self.animation_timer = 0.0
-        self.animation_speed = float(
-            self.neko_idle_config.get("frame_duration", 0.16)
-        )
+        self.neko_x = WINDOW_WIDTH // 2
+        self.neko_direction = 1
 
     def update(self, delta_time: float) -> None:
         """Update menu animations."""
+        self._update_walk_position(delta_time)
+
         if not self.neko_frames:
             return
 
+        active_config = self._get_active_animation_config()
+        frame_duration = float(active_config.get("frame_duration", 0.16))
         self.animation_timer += delta_time
-        if self.animation_timer >= self.animation_speed:
+
+        if self.animation_timer >= frame_duration:
             self.animation_timer = 0.0
             self.current_frame_index = (self.current_frame_index + 1) % len(
                 self.neko_frames
@@ -84,7 +103,7 @@ class MenuScene(BaseScene):
         self._draw_neko(surface, panel_rect)
         self._draw_centered_text(
             surface,
-            "Neko idle frame animation is running",
+            "Neko walk animation is running",
             self.body_font,
             MUTED_TEXT_COLOR,
             panel_rect.bottom - 44,
@@ -98,54 +117,67 @@ class MenuScene(BaseScene):
             self.body_font = pygame.font.Font(None, 30)
 
     def _ensure_neko_frames(self) -> None:
-        """Load Neko's idle animation frames once."""
+        """Load Neko's active animation frames once."""
         if self.neko_frames:
             return
 
-        frame_paths = self._get_frame_paths()
+        active_config = self._get_active_animation_config()
+        frame_paths = self._get_frame_paths(active_config)
+
         if frame_paths:
             self.neko_frames = load_frame_sequence(
                 image_paths=frame_paths,
-                target_height=int(self.neko_idle_config["target_height"]),
+                target_height=int(active_config["target_height"]),
             )
             return
 
-        image_path = Path(str(self.neko_idle_config.get("image", "")))
+        image_path = Path(str(active_config.get("image", "")))
         if not image_path.exists():
             return
 
         self.neko_frames = load_sprite_sheet_frames(
             image_path=image_path,
-            columns=int(self.neko_idle_config["columns"]),
-            rows=int(self.neko_idle_config["rows"]),
-            target_height=int(self.neko_idle_config["target_height"]),
-            cell_crop=self._get_cell_crop(),
+            columns=int(active_config["columns"]),
+            rows=int(active_config["rows"]),
+            target_height=int(active_config["target_height"]),
+            cell_crop=self._get_cell_crop(active_config),
         )
 
-    def _load_neko_idle_config(self) -> dict[str, Any]:
-        """Load Neko idle animation config from JSON."""
+    def _load_neko_animation_configs(self) -> dict[str, dict[str, Any]]:
+        """Load Neko animation config from JSON."""
         character_data = self.data_manager.load_json(
             "animations/characters.json",
             default={},
         )
-        idle_config = character_data.get("neko", {}).get("idle", {})
+        neko_data = character_data.get("neko", {})
 
-        return {
-            **DEFAULT_NEKO_IDLE_CONFIG,
-            **idle_config,
-        }
+        animation_configs: dict[str, dict[str, Any]] = {}
+        for animation_name, default_config in DEFAULT_NEKO_ANIMATIONS.items():
+            animation_configs[animation_name] = {
+                **default_config,
+                **neko_data.get(animation_name, {}),
+            }
 
-    def _get_cell_crop(self) -> tuple[int, int, int, int] | None:
+        return animation_configs
+
+    def _get_active_animation_config(self) -> dict[str, Any]:
+        """Return config for the active Neko animation."""
+        return self.neko_animation_configs[self.neko_animation_name]
+
+    def _get_cell_crop(
+        self,
+        animation_config: dict[str, Any],
+    ) -> tuple[int, int, int, int] | None:
         """Return optional frame crop from config."""
-        crop = self.neko_idle_config.get("cell_crop")
+        crop = animation_config.get("cell_crop")
         if not isinstance(crop, list) or len(crop) != 4:
             return None
 
         return tuple(int(value) for value in crop)
 
-    def _get_frame_paths(self) -> list[Path]:
+    def _get_frame_paths(self, animation_config: dict[str, Any]) -> list[Path]:
         """Return separate frame image paths if configured."""
-        frame_files = self.neko_idle_config.get("frame_files", [])
+        frame_files = animation_config.get("frame_files", [])
         if not isinstance(frame_files, list):
             return []
 
@@ -154,6 +186,24 @@ class MenuScene(BaseScene):
             return []
 
         return frame_paths
+
+    def _update_walk_position(self, delta_time: float) -> None:
+        """Move Neko back and forth in the menu preview."""
+        active_config = self._get_active_animation_config()
+        move_speed = float(active_config.get("move_speed", 0))
+        if move_speed <= 0:
+            return
+
+        left_bound = WINDOW_WIDTH // 2 - 120
+        right_bound = WINDOW_WIDTH // 2 + 120
+        self.neko_x += move_speed * self.neko_direction * delta_time
+
+        if self.neko_x >= right_bound:
+            self.neko_x = right_bound
+            self.neko_direction = -1
+        elif self.neko_x <= left_bound:
+            self.neko_x = left_bound
+            self.neko_direction = 1
 
     def _draw_neko(self, surface: pygame.Surface, panel_rect: pygame.Rect) -> None:
         """Draw the animated Neko preview."""
@@ -164,10 +214,12 @@ class MenuScene(BaseScene):
             return
 
         frame = self.neko_frames[self.current_frame_index]
-        frame_rect = frame.get_rect(
-            midbottom=(panel_rect.centerx, panel_rect.bottom - 78)
-        )
+        if self.neko_direction < 0:
+            frame = pygame.transform.flip(frame, True, False)
 
+        frame_rect = frame.get_rect(
+            midbottom=(round(self.neko_x), panel_rect.bottom - 78)
+        )
         surface.blit(frame, frame_rect)
 
     @staticmethod

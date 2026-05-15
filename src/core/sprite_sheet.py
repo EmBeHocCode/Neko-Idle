@@ -35,13 +35,7 @@ def load_sprite_sheet_frames(
                 crop_rect = pygame.Rect(cell_crop).clip(frame.get_rect())
                 frame = frame.subsurface(crop_rect).copy()
 
-            if trim_alpha:
-                frame = _trim_transparent_pixels(frame)
-
-            if target_height is not None:
-                frame = _scale_to_height(frame, target_height)
-
-            frames.append(frame)
+            frames.append(_prepare_frame(frame, target_height, trim_alpha, smooth=True))
 
     return frames
 
@@ -56,16 +50,27 @@ def load_frame_sequence(
 
     for image_path in image_paths:
         frame = pygame.image.load(str(image_path)).convert_alpha()
-
-        if trim_alpha:
-            frame = _trim_transparent_pixels(frame)
-
-        if target_height is not None:
-            frame = _scale_to_height(frame, target_height, smooth=False)
-
-        frames.append(frame)
+        frames.append(_prepare_frame(frame, target_height, trim_alpha, smooth=False))
 
     return frames
+
+
+def _prepare_frame(
+    surface: pygame.Surface,
+    target_height: int | None,
+    trim_alpha: bool,
+    smooth: bool,
+) -> pygame.Surface:
+    """Trim and scale one animation frame."""
+    frame = surface
+
+    if trim_alpha:
+        frame = _trim_transparent_pixels(frame)
+
+    if target_height is not None:
+        frame = _scale_to_height(frame, target_height, smooth=smooth)
+
+    return frame
 
 
 def _trim_transparent_pixels(surface: pygame.Surface) -> pygame.Surface:

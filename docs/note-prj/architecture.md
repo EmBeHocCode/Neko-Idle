@@ -52,7 +52,8 @@ build/
 ## Sprite Sheet
 
 - `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột/hàng và hàm đọc danh sách frame rời.
-- Animation idle hiện tại của Neko dùng 3 frame rời: `idle_1.png`, `idle_2.png`, `idle_3.png`.
+- Animation idle của Neko dùng 3 frame rời: `idle_1.png`, `idle_2.png`, `idle_3.png`.
+- Animation walk của Neko dùng 5 frame rời: `walk_1.png` đến `walk_5.png`.
 - Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
 
