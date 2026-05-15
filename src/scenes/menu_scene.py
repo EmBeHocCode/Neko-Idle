@@ -94,6 +94,7 @@ class MenuScene(BaseScene):
             columns=3,
             rows=2,
             target_height=260,
+            cell_crop=(0, 0, 455, 512),
         )
 
     def _draw_neko(self, surface: pygame.Surface, panel_rect: pygame.Rect) -> None:

@@ -11,6 +11,7 @@ def load_sprite_sheet_frames(
     rows: int,
     target_height: int | None = None,
     trim_alpha: bool = True,
+    cell_crop: tuple[int, int, int, int] | None = None,
 ) -> list[pygame.Surface]:
     """Load a sprite sheet and split it into frames."""
     sheet = pygame.image.load(str(image_path)).convert_alpha()
@@ -29,6 +30,10 @@ def load_sprite_sheet_frames(
                 frame_height,
             )
             frame = sheet.subsurface(frame_rect).copy()
+
+            if cell_crop is not None:
+                crop_rect = pygame.Rect(cell_crop).clip(frame.get_rect())
+                frame = frame.subsurface(crop_rect).copy()
 
             if trim_alpha:
                 frame = _trim_transparent_pixels(frame)

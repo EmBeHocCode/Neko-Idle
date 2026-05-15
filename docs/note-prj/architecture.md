@@ -53,6 +53,7 @@ build/
 - `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột và hàng.
 - Ảnh Neko hiện dùng layout 3 cột x 2 hàng, tổng 6 frame.
 - Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
+- Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
 
 ## Ghi Chú Hiện Tại
 

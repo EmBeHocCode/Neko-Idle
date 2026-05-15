@@ -13,3 +13,4 @@
 - Cập nhật README theo cấu trúc dự án mới.
 - Triển khai MVP-1: cửa sổ Pygame, game loop cơ bản và menu scene đầu tiên.
 - Thêm loader spritesheet và hiển thị animation idle của Neko trên menu.
+- Sửa lỗi animation Neko bị lộ mảnh frame kế bên bằng crop nội bộ khi cắt spritesheet.
