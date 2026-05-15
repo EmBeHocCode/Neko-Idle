@@ -8,6 +8,7 @@
 - Đổi cơ chế dash từ tăng tốc khi giữ `Shift` sang bấm `Shift` một lần để lao một đoạn cố định, cấu hình bằng `distance` và `duration`.
 - Sửa lỗi điều khiển ở rìa màn hình: input `A`/`D` được lưu bằng sự kiện `KEYDOWN`/`KEYUP`, và dash 0px khi đâm vào rìa sẽ không khóa trạng thái nhân vật.
 - Chuẩn hóa kích thước animation Neko: idle, walk và dash đều render theo canvas height 160 và tắt `trim_alpha` để tránh lệch to nhỏ giữa các frame.
+- Tăng tốc độ đi bộ của Neko từ 90 lên 150 px/s để cảm giác điều khiển nhanh hơn.
 
 ## 2026-05-15
 

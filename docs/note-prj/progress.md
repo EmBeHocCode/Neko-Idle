@@ -17,6 +17,7 @@
 - Animation dash hiện dùng 3 frame rời trong `assets/images/characters/`.
 - Menu preview hiện đã có trạng thái `idle`, di chuyển bằng `A`/`D`, và bấm `Shift` để dash một đoạn cố định.
 - Kích thước render của idle/walk/dash đã được chuẩn hóa theo canvas để giảm lệch hình giữa các frame.
+- Tốc độ đi bộ thử nghiệm của Neko hiện là 150 px/s.
 - Đã có `DataManager` để nạp JSON trung tâm.
 - Gameplay chính chưa được triển khai.
 

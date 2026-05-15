@@ -41,7 +41,7 @@ DEFAULT_NEKO_ANIMATIONS = {
         "target_height": 160,
         "frame_duration": 0.12,
         "trim_alpha": False,
-        "move_speed": 90,
+        "move_speed": 150,
     },
     "dash": {
         "frame_files": [

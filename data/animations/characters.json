@@ -21,7 +21,7 @@
       "target_height": 160,
       "frame_duration": 0.12,
       "trim_alpha": false,
-      "move_speed": 90
+      "move_speed": 150
     },
     "dash": {
       "frame_files": [
