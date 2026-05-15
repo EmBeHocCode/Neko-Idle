@@ -6,6 +6,7 @@
 - Trạng thái mặc định của Neko là `idle`; giữ `A` hoặc `D` để di chuyển và phát animation `walk`.
 - Thêm animation dash 3 frame cho Neko: `dash_1.png` đến `dash_3.png`; giữ `Shift` khi di chuyển sẽ phát animation `dash`.
 - Đổi cơ chế dash từ tăng tốc khi giữ `Shift` sang bấm `Shift` một lần để lao một đoạn cố định, cấu hình bằng `distance` và `duration`.
+- Sửa lỗi điều khiển ở rìa màn hình: input `A`/`D` được lưu bằng sự kiện `KEYDOWN`/`KEYUP`, và dash 0px khi đâm vào rìa sẽ không khóa trạng thái nhân vật.
 
 ## 2026-05-15
 

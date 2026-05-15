@@ -9,6 +9,7 @@
 - Source tham khảo `E:\FULLSOURCEAVATAR\` là Java/Maven/server-side, không phù hợp để trộn trực tiếp vào Neko Python/Pygame.
 - Đã xử lý lỗi menu preview khiến Neko tự đi liên tục: chuyển sang trạng thái `idle` mặc định và chỉ di chuyển khi giữ `A` hoặc `D`.
 - Đã xử lý sai thiết kế dash: cơ chế cũ là giữ `Shift` để chạy nhanh, cơ chế mới là bấm `Shift` một lần để lao một đoạn cố định.
+- Đã xử lý lỗi chạm rìa khiến điều khiển bị kẹt: dash hướng ra ngoài rìa không còn tạo trạng thái dash 0px, input di chuyển không phụ thuộc trực tiếp vào `pygame.key.get_pressed()`, và phím hướng mới nhất được ưu tiên khi `A`/`D` cùng được giữ.
 
 ## Ghi Chú Quy Trình
 

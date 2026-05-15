@@ -74,11 +74,23 @@ class MenuScene(BaseScene):
         self.dash_elapsed = 0.0
         self.dash_start_x = float(self.neko_x)
         self.dash_target_x = float(self.neko_x)
+        self.held_keys: set[int] = set()
+        self.last_horizontal_key: int | None = None
 
     def handle_event(self, event: pygame.event.Event) -> None:
         """Handle menu input events."""
+        if event.type == pygame.KEYUP:
+            self.held_keys.discard(event.key)
+            if event.key == self.last_horizontal_key:
+                self.last_horizontal_key = self._find_held_horizontal_key()
+            return
+
         if event.type != pygame.KEYDOWN:
             return
+
+        self.held_keys.add(event.key)
+        if event.key in (pygame.K_a, pygame.K_d):
+            self.last_horizontal_key = event.key
 
         if event.key in (pygame.K_LSHIFT, pygame.K_RSHIFT):
             self._start_neko_dash()
@@ -229,8 +241,21 @@ class MenuScene(BaseScene):
 
     def _get_pressed_move_direction(self) -> int:
         """Return the current horizontal input direction."""
-        pressed_keys = pygame.key.get_pressed()
-        return int(pressed_keys[pygame.K_d]) - int(pressed_keys[pygame.K_a])
+        if self.last_horizontal_key == pygame.K_d:
+            return 1
+        if self.last_horizontal_key == pygame.K_a:
+            return -1
+
+        return int(pygame.K_d in self.held_keys) - int(pygame.K_a in self.held_keys)
+
+    def _find_held_horizontal_key(self) -> int | None:
+        """Return a fallback held horizontal key."""
+        if pygame.K_d in self.held_keys:
+            return pygame.K_d
+        if pygame.K_a in self.held_keys:
+            return pygame.K_a
+
+        return None
 
     def _get_neko_move_bounds(self) -> tuple[int, int]:
         """Return the horizontal movement bounds for the menu preview."""
@@ -246,14 +271,21 @@ class MenuScene(BaseScene):
         distance = float(dash_config.get("distance", 260))
         left_bound, right_bound = self._get_neko_move_bounds()
 
-        self.neko_direction = move_direction
-        self.is_neko_dashing = True
-        self.dash_elapsed = 0.0
-        self.dash_start_x = float(self.neko_x)
-        self.dash_target_x = max(
+        dash_start_x = float(self.neko_x)
+        dash_target_x = max(
             left_bound,
             min(right_bound, self.neko_x + distance * move_direction),
         )
+        if abs(dash_target_x - dash_start_x) < 1:
+            self.is_neko_dashing = False
+            self._update_neko_movement(0.0)
+            return
+
+        self.neko_direction = move_direction
+        self.is_neko_dashing = True
+        self.dash_elapsed = 0.0
+        self.dash_start_x = dash_start_x
+        self.dash_target_x = dash_target_x
         self._set_neko_animation("dash")
 
     def _update_neko_dash(self, delta_time: float) -> None:

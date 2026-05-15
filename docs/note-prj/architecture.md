@@ -66,6 +66,9 @@ build/
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
 - Bấm `Shift` thì Neko bắt đầu một lượt `dash`, dùng hướng đang giữ bằng `A`/`D`; nếu không giữ hướng thì dash theo hướng đang quay mặt.
 - Trong lúc dash, input đi bộ tạm thời không điều khiển vị trí; Neko nội suy từ vị trí bắt đầu đến vị trí đích theo `distance` và `duration` trong `data/animations/characters.json`.
+- `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
+- Nếu `A` và `D` cùng được giữ, phím hướng được bấm gần nhất sẽ được ưu tiên để đổi hướng mượt hơn.
+- Nếu dash bị chặn bởi rìa và vị trí đích trùng vị trí hiện tại, scene bỏ lượt dash đó để không khóa điều khiển.
 
 ## Data-Driven Structure
 
