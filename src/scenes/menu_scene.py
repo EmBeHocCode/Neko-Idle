@@ -40,7 +40,6 @@ DEFAULT_NEKO_ANIMATIONS = {
         "target_height": 160,
         "frame_duration": 0.12,
         "move_speed": 90,
-        "dash_multiplier": 2.2,
     },
     "dash": {
         "frame_files": [
@@ -51,6 +50,8 @@ DEFAULT_NEKO_ANIMATIONS = {
         "target_height": 96,
         "frame_duration": 0.08,
         "trim_alpha": False,
+        "distance": 260,
+        "duration": 0.22,
     },
 }
 
@@ -69,10 +70,25 @@ class MenuScene(BaseScene):
         self.animation_timer = 0.0
         self.neko_x = WINDOW_WIDTH // 2
         self.neko_direction = 1
+        self.is_neko_dashing = False
+        self.dash_elapsed = 0.0
+        self.dash_start_x = float(self.neko_x)
+        self.dash_target_x = float(self.neko_x)
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        """Handle menu input events."""
+        if event.type != pygame.KEYDOWN:
+            return
+
+        if event.key in (pygame.K_LSHIFT, pygame.K_RSHIFT):
+            self._start_neko_dash()
 
     def update(self, delta_time: float) -> None:
         """Update menu animations."""
-        self._update_neko_movement(delta_time)
+        if self.is_neko_dashing:
+            self._update_neko_dash(delta_time)
+        else:
+            self._update_neko_movement(delta_time)
 
         if not self.neko_frames:
             return
@@ -211,29 +227,67 @@ class MenuScene(BaseScene):
         self.animation_timer = 0.0
         self._ensure_neko_frames()
 
+    def _get_pressed_move_direction(self) -> int:
+        """Return the current horizontal input direction."""
+        pressed_keys = pygame.key.get_pressed()
+        return int(pressed_keys[pygame.K_d]) - int(pressed_keys[pygame.K_a])
+
+    def _get_neko_move_bounds(self) -> tuple[int, int]:
+        """Return the horizontal movement bounds for the menu preview."""
+        return WINDOW_WIDTH // 2 - 260, WINDOW_WIDTH // 2 + 260
+
+    def _start_neko_dash(self) -> None:
+        """Dash Neko forward by a fixed distance."""
+        if self.is_neko_dashing:
+            return
+
+        dash_config = self.neko_animation_configs["dash"]
+        move_direction = self._get_pressed_move_direction() or self.neko_direction
+        distance = float(dash_config.get("distance", 260))
+        left_bound, right_bound = self._get_neko_move_bounds()
+
+        self.neko_direction = move_direction
+        self.is_neko_dashing = True
+        self.dash_elapsed = 0.0
+        self.dash_start_x = float(self.neko_x)
+        self.dash_target_x = max(
+            left_bound,
+            min(right_bound, self.neko_x + distance * move_direction),
+        )
+        self._set_neko_animation("dash")
+
+    def _update_neko_dash(self, delta_time: float) -> None:
+        """Move Neko along the current dash burst."""
+        dash_config = self.neko_animation_configs["dash"]
+        dash_duration = max(0.01, float(dash_config.get("duration", 0.22)))
+
+        self.dash_elapsed += delta_time
+        progress = min(1.0, self.dash_elapsed / dash_duration)
+        self.neko_x = self.dash_start_x + (
+            self.dash_target_x - self.dash_start_x
+        ) * progress
+
+        if progress >= 1.0:
+            self.is_neko_dashing = False
+            self._update_neko_movement(0.0)
+
     def _update_neko_movement(self, delta_time: float) -> None:
         """Move Neko only when the player holds A or D."""
-        pressed_keys = pygame.key.get_pressed()
-        move_direction = int(pressed_keys[pygame.K_d]) - int(pressed_keys[pygame.K_a])
+        move_direction = self._get_pressed_move_direction()
 
         if move_direction == 0:
             self._set_neko_animation("idle")
             return
 
         self.neko_direction = move_direction
-        is_dashing = pressed_keys[pygame.K_LSHIFT] or pressed_keys[pygame.K_RSHIFT]
-        self._set_neko_animation("dash" if is_dashing else "walk")
+        self._set_neko_animation("walk")
 
         walk_config = self.neko_animation_configs["walk"]
         move_speed = float(walk_config.get("move_speed", 0))
         if move_speed <= 0:
             return
 
-        if is_dashing:
-            move_speed *= float(walk_config.get("dash_multiplier", 1.0))
-
-        left_bound = WINDOW_WIDTH // 2 - 180
-        right_bound = WINDOW_WIDTH // 2 + 180
+        left_bound, right_bound = self._get_neko_move_bounds()
         self.neko_x += move_speed * move_direction * delta_time
         self.neko_x = max(left_bound, min(right_bound, self.neko_x))
 

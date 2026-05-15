@@ -64,7 +64,8 @@ build/
 - `MenuScene` chọn animation Neko theo trạng thái input thay vì tự chạy preview.
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
-- Giữ `Shift` trong lúc di chuyển thì Neko đổi sang `dash`, đồng thời tốc độ được nhân với `dash_multiplier` trong `data/animations/characters.json`.
+- Bấm `Shift` thì Neko bắt đầu một lượt `dash`, dùng hướng đang giữ bằng `A`/`D`; nếu không giữ hướng thì dash theo hướng đang quay mặt.
+- Trong lúc dash, input đi bộ tạm thời không điều khiển vị trí; Neko nội suy từ vị trí bắt đầu đến vị trí đích theo `distance` và `duration` trong `data/animations/characters.json`.
 
 ## Data-Driven Structure
 

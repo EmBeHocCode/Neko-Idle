@@ -15,7 +15,7 @@
 - Animation idle hiện dùng 3 frame rời trong `assets/images/characters/`.
 - Animation walk hiện dùng 5 frame rời trong `assets/images/characters/`.
 - Animation dash hiện dùng 3 frame rời trong `assets/images/characters/`.
-- Menu preview hiện đã có trạng thái `idle`, di chuyển bằng `A`/`D`, và dash bằng `Shift` khi đang di chuyển.
+- Menu preview hiện đã có trạng thái `idle`, di chuyển bằng `A`/`D`, và bấm `Shift` để dash một đoạn cố định.
 - Đã có `DataManager` để nạp JSON trung tâm.
 - Gameplay chính chưa được triển khai.
 
