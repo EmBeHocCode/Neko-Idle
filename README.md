@@ -1,57 +1,47 @@
-# 🐾 Neko Idle Quest: Hành Trình Tri Thức
+# Neko Idle Quest: Hành Trình Tri Thức
 
-**Neko Idle Quest: Hành Trình Tri Thức** là một game **2D Idle RPG / Auto Battle** được phát triển bằng **Python** và **Pygame**.
+**Neko Idle Quest: Hành Trình Tri Thức** là game **2D Idle RPG / Auto Battle** được phát triển bằng **Python** và **Pygame**.
 
-Người chơi đồng hành cùng chú mèo Neko trong hành trình vượt ải, chiến đấu với quái vật, nhận vàng, EXP, trang bị, nâng cấp sức mạnh và đánh boss để mở khóa khu vực mới.
+Người chơi đồng hành cùng chú mèo Neko trong hành trình vượt ải, chiến đấu tự động với quái vật, nhận vàng, EXP, trang bị, nâng cấp sức mạnh và đánh boss để mở khóa khu vực mới.
 
-## 🎯 Mục Tiêu Dự Án
+## Mục Tiêu Dự Án
 
 Dự án được thực hiện để tham gia cuộc thi **"Thiết kế Game bằng AI"** của trường.
 
-Mục tiêu chính:
-
-- Xây dựng một game 2D hoàn chỉnh bằng Python + Pygame.
-- Tạo gameplay idle/auto battle dễ hiểu, phù hợp với người chơi từ 11 tuổi trở lên.
-- Ứng dụng AI trong quá trình tạo tài nguyên, thiết kế gameplay và viết tài liệu.
+- Xây dựng game 2D hoàn chỉnh bằng Python + Pygame.
+- Hoàn thành MVP ổn định trước khi thêm tính năng nâng cao.
+- Ứng dụng AI trong tạo tài nguyên, thiết kế gameplay, cân bằng chỉ số và viết tài liệu.
 - Có thể đóng gói thành file `.exe` để trình bày trước ban giám khảo.
 
-## 🌟 Giới Thiệu Ngắn
-
-Trong game, người chơi sẽ điều khiển Neko, một chú mèo chiến binh dễ thương, cầm vũ khí và tự động chiến đấu với quái vật theo từng màn chơi.
-
-Game không thuộc thể loại giải đố. Trọng tâm gameplay là **idle/auto battle**, cày tài nguyên, nâng cấp nhân vật và vượt boss.
-
-## 🎮 Gameplay Chính
+## Gameplay Chính
 
 - Neko tự động chiến đấu với quái vật.
-- Nhận vàng, EXP và trang bị sau khi chiến thắng.
-- Nâng cấp chỉ số nhân vật để mạnh hơn.
-- Vượt qua các wave và stage.
-- Đánh boss để mở khóa khu vực mới.
+- Người chơi nhận vàng, EXP và trang bị sau trận.
+- Người chơi nâng cấp chỉ số để vượt stage và boss.
+- Boss được dùng làm mốc mở khóa khu vực mới.
 
-## ✨ Tính Năng Dự Kiến
+## Tính Năng Dự Kiến
 
 - Menu chính.
-- Nhân vật Neko và hệ thống quái vật.
-- Hệ thống auto combat.
-- Chỉ số HP, attack, defense, crit.
-- Hệ thống level, EXP và gold.
+- Auto combat.
+- HP, attack, defense, crit.
+- Level, EXP, gold.
 - Trang bị và kho đồ.
 - Boss battles.
 - Stage và wave progression.
-- Save/load dữ liệu bằng JSON.
-- Giao diện người dùng: HP bar, EXP bar, gold, level.
+- Save/load bằng JSON.
+- UI cơ bản: HP bar, EXP bar, gold, level, button.
 
-## 🛠 Công Nghệ Sử Dụng
+## Công Nghệ Sử Dụng
 
-- **Python**
-- **Pygame**
-- **JSON** cho hệ thống lưu dữ liệu
-- Công cụ AI hỗ trợ tạo tài nguyên và nội dung
+- Python
+- Pygame
+- JSON
+- Git/GitHub
 
-Nền tảng mục tiêu: **Windows PC**
+Nền tảng mục tiêu: **Windows PC**.
 
-## 🤖 Ứng Dụng AI
+## Ứng Dụng AI
 
 AI được sử dụng để hỗ trợ:
 
@@ -60,31 +50,50 @@ AI được sử dụng để hỗ trợ:
 - Viết mô tả kỹ năng, nội dung trình bày và tài liệu dự án.
 - Hỗ trợ lập trình, sửa lỗi và tối ưu mã nguồn.
 
-## 📁 Cấu Trúc Thư Mục Dự Kiến
+## Cấu Trúc Thư Mục
 
 ```text
 Neko-Idle/
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── main.py
 ├── assets/
 │   ├── images/
+│   │   ├── characters/
+│   │   ├── enemies/
+│   │   ├── bosses/
+│   │   ├── items/
+│   │   ├── ui/
+│   │   ├── backgrounds/
+│   │   └── icons/
 │   ├── sounds/
+│   │   ├── music/
+│   │   └── sfx/
 │   └── fonts/
 ├── data/
 │   ├── save.json
-│   └── config.json
+│   ├── enemies.json
+│   ├── items.json
+│   ├── skills.json
+│   └── stages.json
 ├── docs/
+│   ├── project-main/
+│   └── note-prj/
+├── rules/
+│   └── rules-main/
 ├── src/
-│   ├── main.py
-│   ├── game.py
-│   ├── player.py
-│   ├── enemy.py
-│   ├── combat.py
-│   ├── ui.py
-│   └── save_load.py
-├── README.md
-└── requirements.txt
+│   ├── core/
+│   ├── scenes/
+│   ├── entities/
+│   ├── systems/
+│   ├── ui/
+│   └── utils/
+├── tools/
+└── build/
 ```
 
-## ⚙️ Cài Đặt Môi Trường
+## Cài Đặt Môi Trường
 
 Yêu cầu:
 
@@ -94,34 +103,30 @@ Yêu cầu:
 Cài đặt thư viện:
 
 ```bash
-pip install pygame
-```
-
-Hoặc sau này, nếu có file `requirements.txt`:
-
-```bash
 pip install -r requirements.txt
 ```
 
-## ▶️ Cách Chạy Game Sau Này
+## Cách Chạy Game
 
-Sau khi mã nguồn được hoàn thiện, chạy game bằng lệnh:
+Hiện tại dự án mới có khung source tối thiểu. Chạy kiểm tra bằng:
 
 ```bash
-python src/main.py
+python main.py
 ```
 
-## 🚧 Trạng Thái Dự Án Hiện Tại
+Sau khi MVP được triển khai, lệnh này sẽ mở cửa sổ game Pygame.
 
-Dự án đang ở giai đoạn chuẩn bị:
+## Trạng Thái Dự Án Hiện Tại
 
-- Lên ý tưởng gameplay.
-- Xác định công nghệ sử dụng.
-- Thiết kế phạm vi tính năng.
-- Chuẩn bị repository.
-- Chưa triển khai source code game chính thức.
+Dự án đang ở giai đoạn dựng nền tảng:
 
-## 📌 Thông Tin Dự Án
+- Repository GitHub đã được tạo.
+- Bộ quy tắc phát triển đã được lưu trong `rules/rules-main/` và `docs/project-main/`.
+- Thư mục ghi chú kỹ thuật `docs/note-prj/` đã được chuẩn hóa.
+- Cấu trúc source theo module đã được tạo.
+- Gameplay chính chưa được triển khai.
+
+## Thông Tin Dự Án
 
 - **Tên game:** Neko Idle Quest: Hành Trình Tri Thức
 - **Tên nhóm:** Neko Studio
@@ -132,7 +137,7 @@ Dự án đang ở giai đoạn chuẩn bị:
 - **Phong cách:** Pixel art, dễ thương, fantasy nhẹ nhàng
 - **Đối tượng người chơi:** Từ 11 tuổi trở lên
 
-## 📜 Ghi Chú Bản Quyền Và Tài Nguyên
+## Ghi Chú Bản Quyền Và Tài Nguyên
 
 Tài nguyên hình ảnh, âm thanh, font chữ và nội dung trong game sẽ được sử dụng theo một trong các nguồn sau:
 

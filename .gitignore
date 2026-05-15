@@ -11,7 +11,8 @@ venv/
 env/
 
 # Build / package
-build/
+build/*
+!build/.gitkeep
 dist/
 *.egg-info/
 *.spec
@@ -26,4 +27,4 @@ Thumbs.db
 .idea/
 
 # Local saves generated while testing
-data/save.json
+data/save.local.json

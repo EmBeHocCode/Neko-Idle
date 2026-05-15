@@ -1,0 +1,11 @@
+[
+  {
+    "id": "slime",
+    "name": "Slime",
+    "hp": 30,
+    "attack": 4,
+    "defense": 1,
+    "exp_reward": 8,
+    "gold_reward": 5
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "forest_1",
+    "name": "Forest Path",
+    "area": "forest",
+    "waves": 5,
+    "enemy_ids": [
+      "slime"
+    ],
+    "boss_id": null
+  }
+]

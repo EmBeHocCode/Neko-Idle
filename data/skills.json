@@ -1,0 +1,8 @@
+[
+  {
+    "id": "quick_slash",
+    "name": "Quick Slash",
+    "description": "A simple starter attack for Neko.",
+    "power": 1.2
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "player": {
+    "name": "Neko",
+    "level": 1,
+    "exp": 0,
+    "gold": 0
+  },
+  "progress": {
+    "stage": 1,
+    "wave": 1,
+    "unlocked_areas": [
+      "forest"
+    ]
+  },
+  "inventory": []
+}

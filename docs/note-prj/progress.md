@@ -7,13 +7,14 @@
 - README cơ bản đã được tạo.
 - Script hỗ trợ đồng bộ Git đã được thêm.
 - Bộ quy tắc phát triển đã có trong `docs/project-main/`.
-- Chưa triển khai source code game chính thức.
+- Cấu trúc thư mục chính đã được dựng.
+- Khung source tối thiểu đã chạy được bằng `python main.py`.
+- Gameplay chính chưa được triển khai.
 
 ## Việc Cần Ưu Tiên Tiếp Theo
 
-- Xác định cấu trúc thư mục source chính thức.
-- Tạo khung game Pygame tối thiểu.
-- Ưu tiên MVP trước: cửa sổ game, game loop, nhân vật, quái, auto combat cơ bản.
+- Tạo cửa sổ game Pygame tối thiểu.
+- Ưu tiên MVP tiếp theo: game loop, nhân vật, quái, auto combat cơ bản.
 - Sau mỗi tính năng hoàn thành, cập nhật changelog, progress, architecture hoặc issues tương ứng.
 
 ## Quy Tắc Đang Áp Dụng
