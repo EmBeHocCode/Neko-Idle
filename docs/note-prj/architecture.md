@@ -47,6 +47,7 @@ build/
 
 - `Game` trong `src/core/game.py` chịu trách nhiệm khởi tạo Pygame, tạo cửa sổ, quản lý clock/FPS và gọi scene hiện tại.
 - `MenuScene` là scene đầu tiên, render màn hình khởi động MVP-1.
+- `MenuScene` hiện là full-window preview scene: không còn panel/card hoặc text tạm, chỉ vẽ nền toàn màn và Neko.
 - `Game.run(max_frames=...)` hỗ trợ test headless để kiểm tra loop mà không cần mở cửa sổ lâu.
 
 ## Sprite Sheet

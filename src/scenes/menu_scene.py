@@ -10,9 +10,6 @@ from src.core.sprite_sheet import load_frame_sequence, load_sprite_sheet_frames
 from src.core.settings import (
     ACCENT_COLOR,
     BACKGROUND_COLOR,
-    MUTED_TEXT_COLOR,
-    PANEL_COLOR,
-    TEXT_COLOR,
     WINDOW_HEIGHT,
     WINDOW_WIDTH,
 )
@@ -64,8 +61,6 @@ class MenuScene(BaseScene):
     """Render the first MVP menu screen."""
 
     def __init__(self) -> None:
-        self.title_font: pygame.font.Font | None = None
-        self.body_font: pygame.font.Font | None = None
         self.data_manager = DataManager()
         self.neko_animation_configs = self._load_neko_animation_configs()
         self.neko_animation_name = "idle"
@@ -121,43 +116,9 @@ class MenuScene(BaseScene):
 
     def draw(self, surface: pygame.Surface) -> None:
         """Draw the main menu."""
-        self._ensure_fonts()
         self._ensure_neko_frames()
         surface.fill(BACKGROUND_COLOR)
-
-        panel_rect = pygame.Rect(120, 70, WINDOW_WIDTH - 240, WINDOW_HEIGHT - 120)
-        pygame.draw.rect(surface, PANEL_COLOR, panel_rect, border_radius=8)
-        pygame.draw.rect(surface, ACCENT_COLOR, panel_rect, width=3, border_radius=8)
-
-        self._draw_centered_text(
-            surface,
-            "Neko Idle Quest",
-            self.title_font,
-            TEXT_COLOR,
-            panel_rect.top + 78,
-        )
-        self._draw_centered_text(
-            surface,
-            "Hanh Trinh Tri Thuc",
-            self.body_font,
-            ACCENT_COLOR,
-            panel_rect.top + 126,
-        )
-        self._draw_neko(surface, panel_rect)
-        self._draw_centered_text(
-            surface,
-            "Neko is ready for adventure",
-            self.body_font,
-            MUTED_TEXT_COLOR,
-            panel_rect.bottom - 44,
-        )
-
-    def _ensure_fonts(self) -> None:
-        """Create fonts after Pygame is initialized."""
-        if self.title_font is None:
-            self.title_font = pygame.font.Font(None, 64)
-        if self.body_font is None:
-            self.body_font = pygame.font.Font(None, 30)
+        self._draw_neko(surface)
 
     def _ensure_neko_frames(self) -> None:
         """Load Neko's active animation frames once."""
@@ -269,7 +230,11 @@ class MenuScene(BaseScene):
 
     def _get_neko_move_bounds(self) -> tuple[int, int]:
         """Return the horizontal movement bounds for the menu preview."""
-        return WINDOW_WIDTH // 2 - 260, WINDOW_WIDTH // 2 + 260
+        return 80, WINDOW_WIDTH - 80
+
+    def _get_neko_ground_y(self) -> int:
+        """Return Neko's current ground line."""
+        return WINDOW_HEIGHT - 72
 
     def _start_neko_dash(self) -> None:
         """Dash Neko forward by a fixed distance."""
@@ -333,11 +298,11 @@ class MenuScene(BaseScene):
         self.neko_x += move_speed * move_direction * delta_time
         self.neko_x = max(left_bound, min(right_bound, self.neko_x))
 
-    def _draw_neko(self, surface: pygame.Surface, panel_rect: pygame.Rect) -> None:
+    def _draw_neko(self, surface: pygame.Surface) -> None:
         """Draw the animated Neko preview."""
         if not self.neko_frames:
             fallback_rect = pygame.Rect(0, 0, 96, 128)
-            fallback_rect.midbottom = (panel_rect.centerx, panel_rect.bottom - 78)
+            fallback_rect.midbottom = (round(self.neko_x), self._get_neko_ground_y())
             pygame.draw.rect(surface, ACCENT_COLOR, fallback_rect, border_radius=6)
             return
 
@@ -346,22 +311,6 @@ class MenuScene(BaseScene):
             frame = pygame.transform.flip(frame, True, False)
 
         frame_rect = frame.get_rect(
-            midbottom=(round(self.neko_x), panel_rect.bottom - 78)
+            midbottom=(round(self.neko_x), self._get_neko_ground_y())
         )
         surface.blit(frame, frame_rect)
-
-    @staticmethod
-    def _draw_centered_text(
-        surface: pygame.Surface,
-        text: str,
-        font: pygame.font.Font | None,
-        color: tuple[int, int, int],
-        y_position: int,
-    ) -> None:
-        """Draw one line of centered text."""
-        if font is None:
-            return
-
-        rendered_text = font.render(text, True, color)
-        text_rect = rendered_text.get_rect(center=(WINDOW_WIDTH // 2, y_position))
-        surface.blit(rendered_text, text_rect)

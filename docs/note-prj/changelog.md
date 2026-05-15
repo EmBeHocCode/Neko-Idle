@@ -11,6 +11,7 @@
 - Tăng tốc độ đi bộ của Neko từ 90 lên 150 px/s để cảm giác điều khiển nhanh hơn.
 - Thêm `render_height` chung cho Neko trong `data/animations/characters.json`; chỉ cần sửa một giá trị để đổi kích thước toàn bộ idle/walk/dash.
 - Ghi nhận cấu hình thử nghiệm hiện tại: `walk.move_speed` của Neko là 300 px/s.
+- Chuyển menu preview sang bố cục full-window: bỏ panel viền vàng và toàn bộ text tạm, chỉ giữ nền và Neko để chuẩn bị thay bằng map/gameplay scene.
 
 ## 2026-05-15
 

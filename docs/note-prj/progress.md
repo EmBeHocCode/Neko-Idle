@@ -19,6 +19,7 @@
 - Kích thước render của idle/walk/dash đã được chuẩn hóa theo canvas để giảm lệch hình giữa các frame.
 - Tốc độ đi bộ thử nghiệm của Neko hiện là 300 px/s.
 - Kích thước tổng thể của Neko hiện chỉnh bằng `neko.render_height` trong `data/animations/characters.json`.
+- Menu preview hiện dùng toàn bộ cửa sổ game, không còn panel viền vàng hoặc chữ tạm.
 - Đã có `DataManager` để nạp JSON trung tâm.
 - Gameplay chính chưa được triển khai.
 
