@@ -1,0 +1,12 @@
+{
+  "neko": {
+    "idle": {
+      "image": "assets/images/characters/neko-idle.png",
+      "columns": 3,
+      "rows": 2,
+      "target_height": 260,
+      "frame_duration": 0.16,
+      "cell_crop": [0, 0, 455, 512]
+    }
+  }
+}

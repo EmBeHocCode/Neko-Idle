@@ -34,6 +34,7 @@ build/
 
 - `main.py`: entry point của dự án.
 - `src/core/`: điều phối game, settings, asset loader, save manager.
+- `src/core/data_manager.py`: nạp và cache JSON game data.
 - `src/scenes/`: các màn hình như menu và battle.
 - `src/entities/`: dữ liệu nhân vật, quái và boss.
 - `src/systems/`: combat, progression, inventory và equipment.
@@ -55,7 +56,14 @@ build/
 - Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
 
+## Data-Driven Structure
+
+- `data/animations/characters.json`: cấu hình spritesheet, số frame, tốc độ frame và crop.
+- `data/maps/forest_path.json`: dữ liệu map mẫu, spawn point, object và NPC.
+- `data/config/game_config.json`: cấu hình game tổng quát để mở rộng sau.
+- Cấu trúc này tham khảo ý tưởng `GameDataManager` và `res/data/` từ `E:\FULLSOURCEAVATAR\`, nhưng triển khai bằng Python/JSON.
+
 ## Ghi Chú Hiện Tại
 
 - Source hiện đã có vòng lặp Pygame tối thiểu.
-- Bước tiếp theo là triển khai entity runtime và auto combat cơ bản.
+- Bước tiếp theo là triển khai entity runtime và auto combat cơ bản dựa trên dữ liệu JSON.

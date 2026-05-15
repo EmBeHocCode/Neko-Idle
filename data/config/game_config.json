@@ -1,0 +1,11 @@
+{
+  "window": {
+    "title": "Neko Idle Quest: Hanh Trinh Tri Thuc",
+    "width": 960,
+    "height": 540,
+    "fps": 60
+  },
+  "debug": {
+    "show_fps": false
+  }
+}

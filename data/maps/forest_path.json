@@ -1,0 +1,11 @@
+{
+  "id": "forest_path",
+  "name": "Forest Path",
+  "background": null,
+  "spawn_points": {
+    "player": [260, 380],
+    "enemy": [690, 380]
+  },
+  "objects": [],
+  "npcs": []
+}

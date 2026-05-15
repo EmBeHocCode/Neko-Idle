@@ -1,9 +1,11 @@
 """Main menu scene."""
 
 from pathlib import Path
+from typing import Any
 
 import pygame
 
+from src.core.data_manager import DataManager
 from src.core.sprite_sheet import load_sprite_sheet_frames
 from src.core.settings import (
     ACCENT_COLOR,
@@ -17,16 +19,30 @@ from src.core.settings import (
 from src.scenes.base_scene import BaseScene
 
 
+DEFAULT_NEKO_IDLE_CONFIG = {
+    "image": "assets/images/characters/neko-idle.png",
+    "columns": 3,
+    "rows": 2,
+    "target_height": 260,
+    "frame_duration": 0.16,
+    "cell_crop": [0, 0, 455, 512],
+}
+
+
 class MenuScene(BaseScene):
     """Render the first MVP menu screen."""
 
     def __init__(self) -> None:
         self.title_font: pygame.font.Font | None = None
         self.body_font: pygame.font.Font | None = None
+        self.data_manager = DataManager()
+        self.neko_idle_config = self._load_neko_idle_config()
         self.neko_frames: list[pygame.Surface] = []
         self.current_frame_index = 0
         self.animation_timer = 0.0
-        self.animation_speed = 0.16
+        self.animation_speed = float(
+            self.neko_idle_config.get("frame_duration", 0.16)
+        )
 
     def update(self, delta_time: float) -> None:
         """Update menu animations."""
@@ -85,17 +101,38 @@ class MenuScene(BaseScene):
         if self.neko_frames:
             return
 
-        image_path = Path("assets/images/characters/neko-idle.png")
+        image_path = Path(str(self.neko_idle_config["image"]))
         if not image_path.exists():
             return
 
         self.neko_frames = load_sprite_sheet_frames(
             image_path=image_path,
-            columns=3,
-            rows=2,
-            target_height=260,
-            cell_crop=(0, 0, 455, 512),
+            columns=int(self.neko_idle_config["columns"]),
+            rows=int(self.neko_idle_config["rows"]),
+            target_height=int(self.neko_idle_config["target_height"]),
+            cell_crop=self._get_cell_crop(),
         )
+
+    def _load_neko_idle_config(self) -> dict[str, Any]:
+        """Load Neko idle animation config from JSON."""
+        character_data = self.data_manager.load_json(
+            "animations/characters.json",
+            default={},
+        )
+        idle_config = character_data.get("neko", {}).get("idle", {})
+
+        return {
+            **DEFAULT_NEKO_IDLE_CONFIG,
+            **idle_config,
+        }
+
+    def _get_cell_crop(self) -> tuple[int, int, int, int] | None:
+        """Return optional frame crop from config."""
+        crop = self.neko_idle_config.get("cell_crop")
+        if not isinstance(crop, list) or len(crop) != 4:
+            return None
+
+        return tuple(int(value) for value in crop)
 
     def _draw_neko(self, surface: pygame.Surface, panel_rect: pygame.Rect) -> None:
         """Draw the animated Neko preview."""
