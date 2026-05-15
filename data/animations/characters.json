@@ -21,6 +21,16 @@
       "frame_duration": 0.12,
       "move_speed": 90,
       "dash_multiplier": 2.2
+    },
+    "dash": {
+      "frame_files": [
+        "assets/images/characters/dash_1.png",
+        "assets/images/characters/dash_2.png",
+        "assets/images/characters/dash_3.png"
+      ],
+      "target_height": 96,
+      "frame_duration": 0.08,
+      "trim_alpha": false
     }
   }
 }

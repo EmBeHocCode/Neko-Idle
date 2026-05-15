@@ -54,15 +54,17 @@ build/
 - `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột/hàng và hàm đọc danh sách frame rời.
 - Animation idle của Neko dùng 3 frame rời: `idle_1.png`, `idle_2.png`, `idle_3.png`.
 - Animation walk của Neko dùng 5 frame rời: `walk_1.png` đến `walk_5.png`.
+- Animation dash của Neko dùng 3 frame rời: `dash_1.png` đến `dash_3.png`.
 - Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
+- Loader hỗ trợ `trim_alpha` trong JSON; dash đặt `trim_alpha: false` để giữ khung 120x64 ổn định và tránh giật kích thước giữa các frame.
 
 ## Character Input State
 
 - `MenuScene` chọn animation Neko theo trạng thái input thay vì tự chạy preview.
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
-- Giữ `Shift` trong lúc di chuyển thì tốc độ được nhân với `dash_multiplier` trong `data/animations/characters.json`.
+- Giữ `Shift` trong lúc di chuyển thì Neko đổi sang `dash`, đồng thời tốc độ được nhân với `dash_multiplier` trong `data/animations/characters.json`.
 
 ## Data-Driven Structure
 

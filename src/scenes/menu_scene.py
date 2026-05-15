@@ -42,6 +42,16 @@ DEFAULT_NEKO_ANIMATIONS = {
         "move_speed": 90,
         "dash_multiplier": 2.2,
     },
+    "dash": {
+        "frame_files": [
+            "assets/images/characters/dash_1.png",
+            "assets/images/characters/dash_2.png",
+            "assets/images/characters/dash_3.png",
+        ],
+        "target_height": 96,
+        "frame_duration": 0.08,
+        "trim_alpha": False,
+    },
 }
 
 
@@ -129,6 +139,7 @@ class MenuScene(BaseScene):
             self.neko_frames = load_frame_sequence(
                 image_paths=frame_paths,
                 target_height=int(active_config["target_height"]),
+                trim_alpha=bool(active_config.get("trim_alpha", True)),
             )
             return
 
@@ -141,6 +152,7 @@ class MenuScene(BaseScene):
             columns=int(active_config["columns"]),
             rows=int(active_config["rows"]),
             target_height=int(active_config["target_height"]),
+            trim_alpha=bool(active_config.get("trim_alpha", True)),
             cell_crop=self._get_cell_crop(active_config),
         )
 
@@ -209,15 +221,16 @@ class MenuScene(BaseScene):
             return
 
         self.neko_direction = move_direction
-        self._set_neko_animation("walk")
+        is_dashing = pressed_keys[pygame.K_LSHIFT] or pressed_keys[pygame.K_RSHIFT]
+        self._set_neko_animation("dash" if is_dashing else "walk")
 
-        active_config = self.neko_animation_configs["walk"]
-        move_speed = float(active_config.get("move_speed", 0))
+        walk_config = self.neko_animation_configs["walk"]
+        move_speed = float(walk_config.get("move_speed", 0))
         if move_speed <= 0:
             return
 
-        if pressed_keys[pygame.K_LSHIFT] or pressed_keys[pygame.K_RSHIFT]:
-            move_speed *= float(active_config.get("dash_multiplier", 1.0))
+        if is_dashing:
+            move_speed *= float(walk_config.get("dash_multiplier", 1.0))
 
         left_bound = WINDOW_WIDTH // 2 - 180
         right_bound = WINDOW_WIDTH // 2 + 180

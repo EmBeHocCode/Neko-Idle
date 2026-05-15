@@ -5,6 +5,7 @@
 - Chuyển menu preview của Neko từ tự động đi qua lại sang điều khiển bằng input.
 - Trạng thái mặc định của Neko là `idle`; giữ `A` hoặc `D` để di chuyển và phát animation `walk`.
 - Thêm cấu hình `dash_multiplier` để giữ `Shift` khi di chuyển sẽ tăng tốc dash.
+- Thêm animation dash 3 frame cho Neko: `dash_1.png` đến `dash_3.png`; giữ `Shift` khi di chuyển sẽ phát animation `dash`.
 
 ## 2026-05-15
 
