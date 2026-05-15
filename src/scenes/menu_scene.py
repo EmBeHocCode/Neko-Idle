@@ -40,6 +40,7 @@ DEFAULT_NEKO_ANIMATIONS = {
         "target_height": 160,
         "frame_duration": 0.12,
         "move_speed": 90,
+        "dash_multiplier": 2.2,
     },
 }
 
@@ -52,7 +53,7 @@ class MenuScene(BaseScene):
         self.body_font: pygame.font.Font | None = None
         self.data_manager = DataManager()
         self.neko_animation_configs = self._load_neko_animation_configs()
-        self.neko_animation_name = "walk"
+        self.neko_animation_name = "idle"
         self.neko_frames: list[pygame.Surface] = []
         self.current_frame_index = 0
         self.animation_timer = 0.0
@@ -61,7 +62,7 @@ class MenuScene(BaseScene):
 
     def update(self, delta_time: float) -> None:
         """Update menu animations."""
-        self._update_walk_position(delta_time)
+        self._update_neko_movement(delta_time)
 
         if not self.neko_frames:
             return
@@ -103,7 +104,7 @@ class MenuScene(BaseScene):
         self._draw_neko(surface, panel_rect)
         self._draw_centered_text(
             surface,
-            "Neko walk animation is running",
+            "Neko is ready for adventure",
             self.body_font,
             MUTED_TEXT_COLOR,
             panel_rect.bottom - 44,
@@ -187,23 +188,41 @@ class MenuScene(BaseScene):
 
         return frame_paths
 
-    def _update_walk_position(self, delta_time: float) -> None:
-        """Move Neko back and forth in the menu preview."""
-        active_config = self._get_active_animation_config()
+    def _set_neko_animation(self, animation_name: str) -> None:
+        """Switch Neko animation and reset frame playback."""
+        if animation_name == self.neko_animation_name:
+            return
+
+        self.neko_animation_name = animation_name
+        self.neko_frames = []
+        self.current_frame_index = 0
+        self.animation_timer = 0.0
+        self._ensure_neko_frames()
+
+    def _update_neko_movement(self, delta_time: float) -> None:
+        """Move Neko only when the player holds A or D."""
+        pressed_keys = pygame.key.get_pressed()
+        move_direction = int(pressed_keys[pygame.K_d]) - int(pressed_keys[pygame.K_a])
+
+        if move_direction == 0:
+            self._set_neko_animation("idle")
+            return
+
+        self.neko_direction = move_direction
+        self._set_neko_animation("walk")
+
+        active_config = self.neko_animation_configs["walk"]
         move_speed = float(active_config.get("move_speed", 0))
         if move_speed <= 0:
             return
 
-        left_bound = WINDOW_WIDTH // 2 - 120
-        right_bound = WINDOW_WIDTH // 2 + 120
-        self.neko_x += move_speed * self.neko_direction * delta_time
+        if pressed_keys[pygame.K_LSHIFT] or pressed_keys[pygame.K_RSHIFT]:
+            move_speed *= float(active_config.get("dash_multiplier", 1.0))
 
-        if self.neko_x >= right_bound:
-            self.neko_x = right_bound
-            self.neko_direction = -1
-        elif self.neko_x <= left_bound:
-            self.neko_x = left_bound
-            self.neko_direction = 1
+        left_bound = WINDOW_WIDTH // 2 - 180
+        right_bound = WINDOW_WIDTH // 2 + 180
+        self.neko_x += move_speed * move_direction * delta_time
+        self.neko_x = max(left_bound, min(right_bound, self.neko_x))
 
     def _draw_neko(self, surface: pygame.Surface, panel_rect: pygame.Rect) -> None:
         """Draw the animated Neko preview."""

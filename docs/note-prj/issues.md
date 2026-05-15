@@ -7,6 +7,7 @@
 - Pygame trên Python 3.12 có thể hiện warning `pkg_resources is deprecated` khi import; hiện chưa ảnh hưởng MVP.
 - Đã xử lý lỗi spritesheet Neko: frame 2 và 5 có mảnh nhỏ từ frame kế bên, cần crop vùng đọc trong mỗi cell.
 - Source tham khảo `E:\FULLSOURCEAVATAR\` là Java/Maven/server-side, không phù hợp để trộn trực tiếp vào Neko Python/Pygame.
+- Đã xử lý lỗi menu preview khiến Neko tự đi liên tục: chuyển sang trạng thái `idle` mặc định và chỉ di chuyển khi giữ `A` hoặc `D`.
 
 ## Ghi Chú Quy Trình
 

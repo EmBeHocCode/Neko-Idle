@@ -13,7 +13,8 @@
 - Ảnh spritesheet cũ `assets/images/characters/neko-idle.png` đã được thay bằng frame rời.
 - Animation idle của Neko đã đọc cấu hình từ `data/animations/characters.json`.
 - Animation idle hiện dùng 3 frame rời trong `assets/images/characters/`.
-- Animation walk hiện dùng 5 frame rời trong `assets/images/characters/` và đã chạy thử trên menu.
+- Animation walk hiện dùng 5 frame rời trong `assets/images/characters/`.
+- Menu preview hiện đã có trạng thái `idle`, di chuyển bằng `A`/`D`, và dash bằng `Shift` khi đang di chuyển.
 - Đã có `DataManager` để nạp JSON trung tâm.
 - Gameplay chính chưa được triển khai.
 

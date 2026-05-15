@@ -19,7 +19,8 @@
       ],
       "target_height": 160,
       "frame_duration": 0.12,
-      "move_speed": 90
+      "move_speed": 90,
+      "dash_multiplier": 2.2
     }
   }
 }

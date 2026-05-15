@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-05-16
+
+- Chuyển menu preview của Neko từ tự động đi qua lại sang điều khiển bằng input.
+- Trạng thái mặc định của Neko là `idle`; giữ `A` hoặc `D` để di chuyển và phát animation `walk`.
+- Thêm cấu hình `dash_multiplier` để giữ `Shift` khi di chuyển sẽ tăng tốc dash.
+
 ## 2026-05-15
 
 - Khởi tạo tài liệu dự án cơ bản cho repository GitHub.

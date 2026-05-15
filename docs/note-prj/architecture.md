@@ -57,6 +57,13 @@ build/
 - Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
 
+## Character Input State
+
+- `MenuScene` chọn animation Neko theo trạng thái input thay vì tự chạy preview.
+- Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
+- Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
+- Giữ `Shift` trong lúc di chuyển thì tốc độ được nhân với `dash_multiplier` trong `data/animations/characters.json`.
+
 ## Data-Driven Structure
 
 - `data/animations/characters.json`: cấu hình frame rời hoặc spritesheet, tốc độ frame và crop.
