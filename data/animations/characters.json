@@ -6,8 +6,9 @@
         "assets/images/characters/idle_2.png",
         "assets/images/characters/idle_3.png"
       ],
-      "target_height": 180,
-      "frame_duration": 0.22
+      "target_height": 160,
+      "frame_duration": 0.22,
+      "trim_alpha": false
     },
     "walk": {
       "frame_files": [
@@ -19,6 +20,7 @@
       ],
       "target_height": 160,
       "frame_duration": 0.12,
+      "trim_alpha": false,
       "move_speed": 90
     },
     "dash": {
@@ -27,7 +29,7 @@
         "assets/images/characters/dash_2.png",
         "assets/images/characters/dash_3.png"
       ],
-      "target_height": 96,
+      "target_height": 160,
       "frame_duration": 0.08,
       "trim_alpha": false,
       "distance": 260,

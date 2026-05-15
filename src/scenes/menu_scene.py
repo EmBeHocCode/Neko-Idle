@@ -26,8 +26,9 @@ DEFAULT_NEKO_ANIMATIONS = {
             "assets/images/characters/idle_2.png",
             "assets/images/characters/idle_3.png",
         ],
-        "target_height": 180,
+        "target_height": 160,
         "frame_duration": 0.22,
+        "trim_alpha": False,
     },
     "walk": {
         "frame_files": [
@@ -39,6 +40,7 @@ DEFAULT_NEKO_ANIMATIONS = {
         ],
         "target_height": 160,
         "frame_duration": 0.12,
+        "trim_alpha": False,
         "move_speed": 90,
     },
     "dash": {
@@ -47,7 +49,7 @@ DEFAULT_NEKO_ANIMATIONS = {
             "assets/images/characters/dash_2.png",
             "assets/images/characters/dash_3.png",
         ],
-        "target_height": 96,
+        "target_height": 160,
         "frame_duration": 0.08,
         "trim_alpha": False,
         "distance": 260,

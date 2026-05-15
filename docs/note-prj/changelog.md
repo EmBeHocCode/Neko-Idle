@@ -7,6 +7,7 @@
 - Thêm animation dash 3 frame cho Neko: `dash_1.png` đến `dash_3.png`; giữ `Shift` khi di chuyển sẽ phát animation `dash`.
 - Đổi cơ chế dash từ tăng tốc khi giữ `Shift` sang bấm `Shift` một lần để lao một đoạn cố định, cấu hình bằng `distance` và `duration`.
 - Sửa lỗi điều khiển ở rìa màn hình: input `A`/`D` được lưu bằng sự kiện `KEYDOWN`/`KEYUP`, và dash 0px khi đâm vào rìa sẽ không khóa trạng thái nhân vật.
+- Chuẩn hóa kích thước animation Neko: idle, walk và dash đều render theo canvas height 160 và tắt `trim_alpha` để tránh lệch to nhỏ giữa các frame.
 
 ## 2026-05-15
 

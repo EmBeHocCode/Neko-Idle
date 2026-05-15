@@ -55,9 +55,9 @@ build/
 - Animation idle của Neko dùng 3 frame rời: `idle_1.png`, `idle_2.png`, `idle_3.png`.
 - Animation walk của Neko dùng 5 frame rời: `walk_1.png` đến `walk_5.png`.
 - Animation dash của Neko dùng 3 frame rời: `dash_1.png` đến `dash_3.png`.
-- Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
+- Frame được scale theo chiều cao canvas cố định để giữ kích thước ổn định giữa các frame.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
-- Loader hỗ trợ `trim_alpha` trong JSON; dash đặt `trim_alpha: false` để giữ khung 120x64 ổn định và tránh giật kích thước giữa các frame.
+- Loader hỗ trợ `trim_alpha` trong JSON; animation Neko đặt `trim_alpha: false` để giữ khung canvas ổn định và tránh giật kích thước giữa các frame.
 
 ## Character Input State
 
