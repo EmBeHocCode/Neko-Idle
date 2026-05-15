@@ -9,12 +9,13 @@
 - Bộ quy tắc phát triển đã có trong `docs/project-main/`.
 - Cấu trúc thư mục chính đã được dựng.
 - Khung source tối thiểu đã chạy được bằng `python main.py`.
+- MVP-1 đã có cửa sổ Pygame, game loop và menu scene đầu tiên.
 - Gameplay chính chưa được triển khai.
 
 ## Việc Cần Ưu Tiên Tiếp Theo
 
-- Tạo cửa sổ game Pygame tối thiểu.
-- Ưu tiên MVP tiếp theo: game loop, nhân vật, quái, auto combat cơ bản.
+- Tạo dữ liệu entity runtime cho Neko và slime.
+- Ưu tiên MVP tiếp theo: nhân vật, quái, auto combat cơ bản.
 - Sau mỗi tính năng hoàn thành, cập nhật changelog, progress, architecture hoặc issues tương ứng.
 
 ## Quy Tắc Đang Áp Dụng

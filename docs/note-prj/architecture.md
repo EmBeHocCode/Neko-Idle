@@ -42,8 +42,13 @@ build/
 - `data/`: dữ liệu JSON có thể chỉnh để cân bằng game.
 - `assets/`: hình ảnh, âm thanh và font.
 
+## Pygame Loop
+
+- `Game` trong `src/core/game.py` chịu trách nhiệm khởi tạo Pygame, tạo cửa sổ, quản lý clock/FPS và gọi scene hiện tại.
+- `MenuScene` là scene đầu tiên, render màn hình khởi động MVP-1.
+- `Game.run(max_frames=...)` hỗ trợ test headless để kiểm tra loop mà không cần mở cửa sổ lâu.
+
 ## Ghi Chú Hiện Tại
 
-- Source hiện mới là skeleton, chưa có vòng lặp Pygame thật.
-- `main.py` chạy được để kiểm tra nền tảng import và entry point.
-- Bước tiếp theo là triển khai cửa sổ Pygame và scene đầu tiên.
+- Source hiện đã có vòng lặp Pygame tối thiểu.
+- Bước tiếp theo là triển khai entity runtime và auto combat cơ bản.

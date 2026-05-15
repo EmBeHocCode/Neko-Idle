@@ -11,3 +11,4 @@
 - Thêm khung source tối thiểu cho các nhóm module `core`, `scenes`, `entities`, `systems`, `ui`, `utils`.
 - Thêm dữ liệu JSON mẫu ban đầu cho save, enemy, item, skill và stage.
 - Cập nhật README theo cấu trúc dự án mới.
+- Triển khai MVP-1: cửa sổ Pygame, game loop cơ bản và menu scene đầu tiên.
