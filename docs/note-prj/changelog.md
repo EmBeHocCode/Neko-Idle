@@ -9,6 +9,8 @@
 - Sửa lỗi điều khiển ở rìa màn hình: input `A`/`D` được lưu bằng sự kiện `KEYDOWN`/`KEYUP`, và dash 0px khi đâm vào rìa sẽ không khóa trạng thái nhân vật.
 - Chuẩn hóa kích thước animation Neko: idle, walk và dash đều render theo canvas height 160 và tắt `trim_alpha` để tránh lệch to nhỏ giữa các frame.
 - Tăng tốc độ đi bộ của Neko từ 90 lên 150 px/s để cảm giác điều khiển nhanh hơn.
+- Thêm `render_height` chung cho Neko trong `data/animations/characters.json`; chỉ cần sửa một giá trị để đổi kích thước toàn bộ idle/walk/dash.
+- Ghi nhận cấu hình thử nghiệm hiện tại: `walk.move_speed` của Neko là 300 px/s.
 
 ## 2026-05-15
 

@@ -56,6 +56,7 @@ build/
 - Animation walk của Neko dùng 5 frame rời: `walk_1.png` đến `walk_5.png`.
 - Animation dash của Neko dùng 3 frame rời: `dash_1.png` đến `dash_3.png`.
 - Frame được scale theo chiều cao canvas cố định để giữ kích thước ổn định giữa các frame.
+- `neko.render_height` trong `data/animations/characters.json` là kích thước render chung cho toàn bộ animation Neko; từng animation vẫn có thể dùng `target_height` riêng nếu cần ngoại lệ.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
 - Loader hỗ trợ `trim_alpha` trong JSON; animation Neko đặt `trim_alpha: false` để giữ khung canvas ổn định và tránh giật kích thước giữa các frame.
 

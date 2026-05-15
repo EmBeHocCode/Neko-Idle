@@ -1,12 +1,12 @@
 {
   "neko": {
+    "render_height": 120,
     "idle": {
       "frame_files": [
         "assets/images/characters/idle_1.png",
         "assets/images/characters/idle_2.png",
         "assets/images/characters/idle_3.png"
       ],
-      "target_height": 160,
       "frame_duration": 0.22,
       "trim_alpha": false
     },
@@ -18,10 +18,9 @@
         "assets/images/characters/walk_4.png",
         "assets/images/characters/walk_5.png"
       ],
-      "target_height": 160,
       "frame_duration": 0.12,
       "trim_alpha": false,
-      "move_speed": 150
+      "move_speed": 300
     },
     "dash": {
       "frame_files": [
@@ -29,7 +28,6 @@
         "assets/images/characters/dash_2.png",
         "assets/images/characters/dash_3.png"
       ],
-      "target_height": 160,
       "frame_duration": 0.08,
       "trim_alpha": false,
       "distance": 260,

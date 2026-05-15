@@ -19,6 +19,8 @@ from src.core.settings import (
 from src.scenes.base_scene import BaseScene
 
 
+DEFAULT_NEKO_RENDER_HEIGHT = 160
+
 DEFAULT_NEKO_ANIMATIONS = {
     "idle": {
         "frame_files": [
@@ -193,13 +195,19 @@ class MenuScene(BaseScene):
             default={},
         )
         neko_data = character_data.get("neko", {})
+        neko_render_height = int(
+            neko_data.get("render_height", DEFAULT_NEKO_RENDER_HEIGHT)
+        )
 
         animation_configs: dict[str, dict[str, Any]] = {}
         for animation_name, default_config in DEFAULT_NEKO_ANIMATIONS.items():
+            custom_config = neko_data.get(animation_name, {})
             animation_configs[animation_name] = {
                 **default_config,
-                **neko_data.get(animation_name, {}),
+                **custom_config,
             }
+            if "target_height" not in custom_config:
+                animation_configs[animation_name]["target_height"] = neko_render_height
 
         return animation_configs
 
