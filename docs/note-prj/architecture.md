@@ -48,6 +48,12 @@ build/
 - `MenuScene` là scene đầu tiên, render màn hình khởi động MVP-1.
 - `Game.run(max_frames=...)` hỗ trợ test headless để kiểm tra loop mà không cần mở cửa sổ lâu.
 
+## Sprite Sheet
+
+- `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột và hàng.
+- Ảnh Neko hiện dùng layout 3 cột x 2 hàng, tổng 6 frame.
+- Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
+
 ## Ghi Chú Hiện Tại
 
 - Source hiện đã có vòng lặp Pygame tối thiểu.

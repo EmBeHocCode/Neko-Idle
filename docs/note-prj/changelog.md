@@ -12,3 +12,4 @@
 - Thêm dữ liệu JSON mẫu ban đầu cho save, enemy, item, skill và stage.
 - Cập nhật README theo cấu trúc dự án mới.
 - Triển khai MVP-1: cửa sổ Pygame, game loop cơ bản và menu scene đầu tiên.
+- Thêm loader spritesheet và hiển thị animation idle của Neko trên menu.

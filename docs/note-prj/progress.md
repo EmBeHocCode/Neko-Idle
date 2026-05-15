@@ -10,6 +10,7 @@
 - Cấu trúc thư mục chính đã được dựng.
 - Khung source tối thiểu đã chạy được bằng `python main.py`.
 - MVP-1 đã có cửa sổ Pygame, game loop và menu scene đầu tiên.
+- Ảnh `assets/images/characters/neko-idle.png` đã được cắt 3x2 frame và chạy animation thử trên menu.
 - Gameplay chính chưa được triển khai.
 
 ## Việc Cần Ưu Tiên Tiếp Theo
