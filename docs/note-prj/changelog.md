@@ -15,3 +15,4 @@
 - Thêm loader spritesheet và hiển thị animation idle của Neko trên menu.
 - Sửa lỗi animation Neko bị lộ mảnh frame kế bên bằng crop nội bộ khi cắt spritesheet.
 - Tham khảo cấu trúc `E:\FULLSOURCEAVATAR\` và bổ sung hướng data-driven cho Neko bằng `DataManager`, JSON animation và JSON map.
+- Chuyển animation idle của Neko sang 3 frame PNG rời: `idle_1.png` đến `idle_3.png`.

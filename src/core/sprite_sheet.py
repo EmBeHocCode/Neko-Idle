@@ -46,6 +46,28 @@ def load_sprite_sheet_frames(
     return frames
 
 
+def load_frame_sequence(
+    image_paths: list[str | Path],
+    target_height: int | None = None,
+    trim_alpha: bool = True,
+) -> list[pygame.Surface]:
+    """Load animation frames from separate image files."""
+    frames: list[pygame.Surface] = []
+
+    for image_path in image_paths:
+        frame = pygame.image.load(str(image_path)).convert_alpha()
+
+        if trim_alpha:
+            frame = _trim_transparent_pixels(frame)
+
+        if target_height is not None:
+            frame = _scale_to_height(frame, target_height, smooth=False)
+
+        frames.append(frame)
+
+    return frames
+
+
 def _trim_transparent_pixels(surface: pygame.Surface) -> pygame.Surface:
     """Remove fully transparent padding around a frame."""
     bounding_rect = surface.get_bounding_rect(min_alpha=1)
@@ -55,7 +77,11 @@ def _trim_transparent_pixels(surface: pygame.Surface) -> pygame.Surface:
     return surface.subsurface(bounding_rect).copy()
 
 
-def _scale_to_height(surface: pygame.Surface, target_height: int) -> pygame.Surface:
+def _scale_to_height(
+    surface: pygame.Surface,
+    target_height: int,
+    smooth: bool = True,
+) -> pygame.Surface:
     """Scale a frame while keeping aspect ratio."""
     width, height = surface.get_size()
     if height == 0:
@@ -63,4 +89,9 @@ def _scale_to_height(surface: pygame.Surface, target_height: int) -> pygame.Surf
 
     scale = target_height / height
     target_width = max(1, int(width * scale))
-    return pygame.transform.smoothscale(surface, (target_width, target_height))
+    target_size = (target_width, target_height)
+
+    if smooth:
+        return pygame.transform.smoothscale(surface, target_size)
+
+    return pygame.transform.scale(surface, target_size)

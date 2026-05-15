@@ -51,14 +51,15 @@ build/
 
 ## Sprite Sheet
 
-- `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột và hàng.
-- Ảnh Neko hiện dùng layout 3 cột x 2 hàng, tổng 6 frame.
+- `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột/hàng và hàm đọc danh sách frame rời.
+- Animation idle hiện tại của Neko dùng 3 frame rời: `idle_1.png`, `idle_2.png`, `idle_3.png`.
 - Frame được trim vùng trong suốt và scale theo chiều cao để dễ đặt vào scene.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
 
 ## Data-Driven Structure
 
-- `data/animations/characters.json`: cấu hình spritesheet, số frame, tốc độ frame và crop.
+- `data/animations/characters.json`: cấu hình frame rời hoặc spritesheet, tốc độ frame và crop.
+- Animation character hỗ trợ cả spritesheet và danh sách frame rời qua `frame_files`.
 - `data/maps/forest_path.json`: dữ liệu map mẫu, spawn point, object và NPC.
 - `data/config/game_config.json`: cấu hình game tổng quát để mở rộng sau.
 - Cấu trúc này tham khảo ý tưởng `GameDataManager` và `res/data/` từ `E:\FULLSOURCEAVATAR\`, nhưng triển khai bằng Python/JSON.

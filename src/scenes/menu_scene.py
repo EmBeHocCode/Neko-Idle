@@ -6,7 +6,7 @@ from typing import Any
 import pygame
 
 from src.core.data_manager import DataManager
-from src.core.sprite_sheet import load_sprite_sheet_frames
+from src.core.sprite_sheet import load_frame_sequence, load_sprite_sheet_frames
 from src.core.settings import (
     ACCENT_COLOR,
     BACKGROUND_COLOR,
@@ -20,12 +20,13 @@ from src.scenes.base_scene import BaseScene
 
 
 DEFAULT_NEKO_IDLE_CONFIG = {
-    "image": "assets/images/characters/neko-idle.png",
-    "columns": 3,
-    "rows": 2,
-    "target_height": 260,
-    "frame_duration": 0.16,
-    "cell_crop": [0, 0, 455, 512],
+    "frame_files": [
+        "assets/images/characters/idle_1.png",
+        "assets/images/characters/idle_2.png",
+        "assets/images/characters/idle_3.png",
+    ],
+    "target_height": 180,
+    "frame_duration": 0.22,
 }
 
 
@@ -83,7 +84,7 @@ class MenuScene(BaseScene):
         self._draw_neko(surface, panel_rect)
         self._draw_centered_text(
             surface,
-            "Neko idle sprite sheet is running",
+            "Neko idle frame animation is running",
             self.body_font,
             MUTED_TEXT_COLOR,
             panel_rect.bottom - 44,
@@ -97,11 +98,19 @@ class MenuScene(BaseScene):
             self.body_font = pygame.font.Font(None, 30)
 
     def _ensure_neko_frames(self) -> None:
-        """Load Neko's idle sprite sheet once."""
+        """Load Neko's idle animation frames once."""
         if self.neko_frames:
             return
 
-        image_path = Path(str(self.neko_idle_config["image"]))
+        frame_paths = self._get_frame_paths()
+        if frame_paths:
+            self.neko_frames = load_frame_sequence(
+                image_paths=frame_paths,
+                target_height=int(self.neko_idle_config["target_height"]),
+            )
+            return
+
+        image_path = Path(str(self.neko_idle_config.get("image", "")))
         if not image_path.exists():
             return
 
@@ -133,6 +142,18 @@ class MenuScene(BaseScene):
             return None
 
         return tuple(int(value) for value in crop)
+
+    def _get_frame_paths(self) -> list[Path]:
+        """Return separate frame image paths if configured."""
+        frame_files = self.neko_idle_config.get("frame_files", [])
+        if not isinstance(frame_files, list):
+            return []
+
+        frame_paths = [Path(str(path)) for path in frame_files]
+        if not all(path.exists() for path in frame_paths):
+            return []
+
+        return frame_paths
 
     def _draw_neko(self, surface: pygame.Surface, panel_rect: pygame.Rect) -> None:
         """Draw the animated Neko preview."""

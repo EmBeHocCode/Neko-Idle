@@ -1,12 +1,13 @@
 {
   "neko": {
     "idle": {
-      "image": "assets/images/characters/neko-idle.png",
-      "columns": 3,
-      "rows": 2,
-      "target_height": 260,
-      "frame_duration": 0.16,
-      "cell_crop": [0, 0, 455, 512]
+      "frame_files": [
+        "assets/images/characters/idle_1.png",
+        "assets/images/characters/idle_2.png",
+        "assets/images/characters/idle_3.png"
+      ],
+      "target_height": 180,
+      "frame_duration": 0.22
     }
   }
 }
