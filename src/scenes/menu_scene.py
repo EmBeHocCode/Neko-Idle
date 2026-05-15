@@ -230,7 +230,17 @@ class MenuScene(BaseScene):
 
     def _get_neko_move_bounds(self) -> tuple[int, int]:
         """Return the horizontal movement bounds for the menu preview."""
-        return 80, WINDOW_WIDTH - 80
+        half_width = self._get_neko_half_width()
+        return half_width, WINDOW_WIDTH - half_width
+
+    def _get_neko_half_width(self) -> int:
+        """Return half of Neko's current frame width for edge clamping."""
+        self._ensure_neko_frames()
+        if not self.neko_frames:
+            return 48
+
+        widest_frame = max(frame.get_width() for frame in self.neko_frames)
+        return max(1, widest_frame // 2)
 
     def _get_neko_ground_y(self) -> int:
         """Return Neko's current ground line."""
@@ -244,9 +254,19 @@ class MenuScene(BaseScene):
         dash_config = self.neko_animation_configs["dash"]
         move_direction = self._get_pressed_move_direction() or self.neko_direction
         distance = float(dash_config.get("distance", 260))
+        self.neko_direction = move_direction
+        self._set_neko_animation("dash")
         left_bound, right_bound = self._get_neko_move_bounds()
 
         dash_start_x = float(self.neko_x)
+        is_dash_blocked_by_edge = (
+            (move_direction < 0 and dash_start_x <= left_bound)
+            or (move_direction > 0 and dash_start_x >= right_bound)
+        )
+        if is_dash_blocked_by_edge:
+            self._update_neko_movement(0.0)
+            return
+
         dash_target_x = max(
             left_bound,
             min(right_bound, self.neko_x + distance * move_direction),
@@ -256,12 +276,10 @@ class MenuScene(BaseScene):
             self._update_neko_movement(0.0)
             return
 
-        self.neko_direction = move_direction
         self.is_neko_dashing = True
         self.dash_elapsed = 0.0
         self.dash_start_x = dash_start_x
         self.dash_target_x = dash_target_x
-        self._set_neko_animation("dash")
 
     def _update_neko_dash(self, delta_time: float) -> None:
         """Move Neko along the current dash burst."""

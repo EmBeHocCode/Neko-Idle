@@ -12,6 +12,7 @@
 - Đã xử lý lỗi chạm rìa khiến điều khiển bị kẹt: dash hướng ra ngoài rìa không còn tạo trạng thái dash 0px, input di chuyển không phụ thuộc trực tiếp vào `pygame.key.get_pressed()`, và phím hướng mới nhất được ưu tiên khi `A`/`D` cùng được giữ.
 - Đã xử lý lỗi animation Neko bị lệch to nhỏ dù ảnh cùng canvas: nguyên nhân là loader trim vùng trong suốt rồi scale theo bounding box từng frame; cấu hình mới tắt `trim_alpha` và dùng cùng `target_height` cho idle/walk/dash.
 - Đã xử lý UI preview còn giống card/menu tạm: bỏ panel viền vàng và text, dùng full-window canvas để chuẩn bị dựng map.
+- Đã xử lý giới hạn di chuyển còn cách mép quá xa: bỏ biên cố định 80px và clamp theo kích thước frame để Neko sát mép nhưng không biến mất.
 
 ## Ghi Chú Quy Trình
 

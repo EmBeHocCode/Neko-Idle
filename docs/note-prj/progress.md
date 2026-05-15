@@ -20,6 +20,7 @@
 - Tốc độ đi bộ thử nghiệm của Neko hiện là 300 px/s.
 - Kích thước tổng thể của Neko hiện chỉnh bằng `neko.render_height` trong `data/animations/characters.json`.
 - Menu preview hiện dùng toàn bộ cửa sổ game, không còn panel viền vàng hoặc chữ tạm.
+- Neko hiện có thể đi tới sát hai mép client nhưng vẫn được giữ trong màn để quay lại.
 - Đã có `DataManager` để nạp JSON trung tâm.
 - Gameplay chính chưa được triển khai.
 

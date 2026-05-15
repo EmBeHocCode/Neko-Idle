@@ -71,6 +71,7 @@ build/
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
 - Nếu `A` và `D` cùng được giữ, phím hướng được bấm gần nhất sẽ được ưu tiên để đổi hướng mượt hơn.
 - Nếu dash bị chặn bởi rìa và vị trí đích trùng vị trí hiện tại, scene bỏ lượt dash đó để không khóa điều khiển.
+- Biên trái/phải được tính theo nửa chiều rộng frame hiện tại, nên Neko có thể chạm sát mép client nhưng sprite không bị mất khỏi màn; đây là điểm chuẩn để sau này gắn trigger chuyển map.
 
 ## Data-Driven Structure
 

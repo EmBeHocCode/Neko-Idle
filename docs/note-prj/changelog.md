@@ -12,6 +12,7 @@
 - Thêm `render_height` chung cho Neko trong `data/animations/characters.json`; chỉ cần sửa một giá trị để đổi kích thước toàn bộ idle/walk/dash.
 - Ghi nhận cấu hình thử nghiệm hiện tại: `walk.move_speed` của Neko là 300 px/s.
 - Chuyển menu preview sang bố cục full-window: bỏ panel viền vàng và toàn bộ text tạm, chỉ giữ nền và Neko để chuẩn bị thay bằng map/gameplay scene.
+- Mở rộng giới hạn di chuyển tới sát mép client: Neko được clamp theo nửa frame hiện tại thay vì khoảng cách cố định 80px.
 
 ## 2026-05-15
 
