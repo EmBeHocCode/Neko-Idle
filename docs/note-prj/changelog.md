@@ -2,7 +2,12 @@
 
 ## 2026-05-17
 
-- Thêm action animation cho `hero_01`: chuột trái phát `attack` ngay, `Ctrl` hoặc chuột phải phát `dash` né ngay, giữ `Shift` khi đi để dùng `run`.
+- Refactor lại hệ thống player animation/state/input theo hướng data-driven: thêm `data/player_animations.json`, tách `PlayerController` trong `src/systems/player_controller.py`, và để `MenuScene` chỉ nhận input + render.
+- Sửa cắt sprite sheet theo config: mỗi sheet bắt buộc là một hàng ngang, `sheet_width` phải chia hết cho `frame_count`, nếu sai sẽ raise `ValueError` có animation, path, sheet_width và frame_count.
+- Sửa jump animation + physics: `Space` chỉ nhảy khi đang grounded, set `velocity_y = -jump_force`, giữ state `jump` khi airborne và tiếp đất mới trả về idle/walk/run theo input hiện tại.
+- Thêm state priority: death > hurt > attack > dash > jump > run > walk > idle; idle/walk/run không còn ghi đè attack/dash/jump.
+- Sửa anti-spam attack: click chuột trái trong lúc đang attack không reset frame; `hit_frame` chỉ kích hoạt sát thương một lần mỗi animation attack.
+- Thêm action animation cho `hero_01`: chuột trái phát `attack` ngay, `Ctrl` phát `dash` né ngay, giữ `Shift` khi đi để dùng `run`.
 - Cập nhật `PlayerAnimationSystem` với `restart` và kiểm tra animation non-loop đã kết thúc, giúp các animation thao tác như `attack`, `dash`, `jump` phản hồi ngay khi bấm.
 - Đặt `hero_01` làm nhân vật mặc định của `forest_path`; Neko được giữ lại trong data nhưng không còn nằm trong preview mặc định cho tới khi có yêu cầu riêng.
 - Cập nhật `PlayerAnimationSystem` để `scale_mode: "consistent"` dùng một hệ số scale chung cho toàn bộ animation của cùng nhân vật, giúp `hero_01` không bị to/nhỏ bất thường khi đổi idle/walk/jump/run.

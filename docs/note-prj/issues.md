@@ -2,6 +2,11 @@
 
 ## Đang Theo Dõi
 
+- Đã sửa lỗi jump animation bị idle/walk/run ghi đè: state airborne hiện giữ `jump` cho tới khi tiếp đất.
+- Đã sửa lỗi attack spam: click chuột trái khi đang attack không restart animation, tránh kẹt ở frame đầu.
+- Đã chuẩn hóa cắt sprite sheet theo config; nếu `sheet_width` không chia hết cho `frame_count`, hệ thống báo lỗi rõ thay vì tự đoán hoặc tự sửa asset.
+- Đã tách state priority vào `PlayerController`, tránh vá tạm trong scene.
+- `hurt.png` của `hero_01` hiện chưa đưa vào `data/player_animations.json` vì asset hiện tại rộng 86px, không chia đều theo số frame nhìn thấy; cần em re-export sheet chuẩn hoặc xác nhận frame_count hợp lệ trước khi bật.
 - Đã xử lý yêu cầu action animation phản hồi tức thì: `jump`, `attack`, `dash` đều restart clip ngay khi input được bấm; `run` tự phát khi giữ `Shift` và đang di chuyển.
 - Đã xử lý rủi ro config action mặc định không có `image`: loader animation chỉ nhận đường dẫn là file thật, tránh load nhầm thư mục gốc.
 - Đã xử lý nguy cơ `hero_01` bị phóng to/thu nhỏ giữa các animation: `scale_mode: "consistent"` hiện dùng một scale factor chung cho toàn bộ animation của nhân vật.

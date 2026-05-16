@@ -36,6 +36,7 @@ build/
 - `src/core/`: điều phối game, settings, asset loader, save manager và player animation.
 - `src/core/data_manager.py`: nạp và cache JSON game data.
 - `src/core/player_animation.py`: cắt sprite sheet một hàng ngang, chuẩn hóa frame vào canvas cố định và cache animation player trong RAM.
+- `src/systems/player_controller.py`: quản lý runtime state của player, ưu tiên animation, jump physics, dash, attack anti-spam và hit frame.
 - `src/scenes/`: các màn hình như menu và battle.
 - `src/entities/`: dữ liệu nhân vật, quái và boss.
 - `src/systems/`: combat, progression, inventory và equipment.
@@ -56,7 +57,9 @@ build/
 ## Sprite Sheet
 
 - `src/core/player_animation.py` là hệ thống chính cho player animation hiện tại.
+- `data/player_animations.json` là config chính hiện tại cho player animation: mỗi animation khai báo `path`, `frame_count`, `fps` hoặc `frame_duration`, `loop`, `priority` và `interruptible`.
 - Mỗi sprite sheet player là một hàng ngang; `frame_width = sheet_width / frame_count`, `frame_height = sheet_height`.
+- Loader bắt buộc kiểm tra `sheet_width % frame_count == 0`; nếu sai sẽ raise `ValueError` có tên animation, path file, `sheet_width`, `frame_count` và lý do không chia hết.
 - `PlayerAnimationSystem` load toàn bộ sprite sheet một lần khi scene khởi động, cắt frame một lần và lưu `pygame.Surface` trong RAM.
 - `PlayerAnimationSystem.set_animation(..., restart=True)` dùng cho thao tác cần phản hồi ngay như `attack`, `dash` và `jump`; animation non-loop có thể kiểm tra kết thúc bằng `is_current_finished()`.
 - Animation idle của Neko dùng sprite sheet `res/images/characters/idle.png`.
@@ -72,15 +75,18 @@ build/
 
 ## Character Input State
 
-- `MenuScene` chọn animation Neko theo trạng thái input thay vì tự chạy preview.
-- `MenuScene` hiện hỗ trợ nhiều character config từ `data/animations/characters.json`; danh sách preview lấy từ `forest_path.preview_characters`, và `Tab` đổi nhân vật đang xem.
+- `MenuScene` chỉ nhận input, vẽ map/player và gọi `PlayerController`; logic state không còn nằm rải rác trong scene.
+- `PlayerController` dùng thứ tự ưu tiên: death > hurt > attack > dash > jump > run > walk > idle.
+- State non-loop không interruptible như `attack`, `dash`, `jump` không bị idle/walk/run ghi đè cho tới khi kết thúc hoặc tiếp đất.
+- `MenuScene` hiện lấy player animation từ `data/player_animations.json`.
 - Từ 2026-05-17, `forest_path.player_character` và `forest_path.preview_characters` ưu tiên `hero_01`; Neko vẫn nằm trong config nhưng không là nhân vật preview mặc định.
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì player đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
 - Giữ `Shift` trong khi đi thì player dùng animation `run` nếu nhân vật có clip `run`.
-- Bấm `Space`, `W` hoặc `Up` thì player phát animation `jump` ngay và dùng physics nhảy thật.
+- Bấm `Space` thì player phát animation `jump` ngay và dùng physics nhảy thật.
 - Bấm chuột trái thì player phát animation `attack` ngay.
-- Bấm `Ctrl` hoặc chuột phải thì player phát animation `dash` ngay và lướt né một đoạn ngắn theo hướng đang nhìn.
+- Bấm `Ctrl` thì player phát animation `dash` ngay và lướt né một đoạn ngắn theo hướng đang nhìn.
+- Spam chuột trái khi đang attack sẽ bị bỏ qua trong MVP để animation attack chạy hết; `hit_frame` trong config đánh dấu frame gây sát thương một lần.
 - `jump` tách animation khỏi physics: animation chỉ phát sprite sheet `jump`, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
 - Khi vẽ player, `MenuScene` dùng `image.get_rect(midbottom=(self.x, self.y))`; không dùng `topleft`.
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
@@ -90,6 +96,7 @@ build/
 ## Data-Driven Structure
 
 - `data/animations/characters.json`: cấu hình frame rời hoặc spritesheet, tốc độ frame và crop.
+- `data/player_animations.json`: config player animation/state mới đang được `MenuScene` sử dụng trực tiếp; ưu tiên dùng file này cho các thay đổi animation player sau này.
 - Animation character hiện ưu tiên sprite sheet qua `image` và `frame_count`; danh sách frame rời chỉ còn là fallback kỹ thuật.
 - Mỗi character có thể có `render_height`, `canvas_size` và nhiều animation khác nhau; `idle`, `walk`, `jump` là nhóm tối thiểu để preview bằng input hiện tại.
 - `data/maps/forest_path.json`: dữ liệu map mẫu, spawn point, object và NPC.

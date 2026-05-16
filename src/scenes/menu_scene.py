@@ -7,52 +7,12 @@ import pygame
 
 from src.core.data_manager import DataManager
 from src.core.player_animation import DEFAULT_CANVAS_SIZE, PlayerAnimationSystem
-from src.core.settings import (
-    ACCENT_COLOR,
-    BACKGROUND_COLOR,
-    WINDOW_HEIGHT,
-    WINDOW_WIDTH,
-)
+from src.core.settings import BACKGROUND_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
 from src.scenes.base_scene import BaseScene
+from src.systems.player_controller import PlayerController
 
 
 DEFAULT_CHARACTER_ID = "hero_01"
-DEFAULT_RENDER_HEIGHT = 60
-DEFAULT_DASH_DISTANCE = 180
-DEFAULT_DASH_DURATION = 0.22
-DEFAULT_PLAYER_ANIMATIONS = {
-    "idle": {
-        "image": "res/images/characters/idle.png",
-        "frame_count": 4,
-        "frame_duration": 0.22,
-        "loop": True,
-    },
-    "walk": {
-        "image": "res/images/characters/walk.png",
-        "frame_count": 8,
-        "frame_duration": 0.12,
-        "loop": True,
-        "move_speed": 400,
-    },
-    "jump": {
-        "image": "res/images/characters/jump.png",
-        "frame_count": 6,
-        "frame_duration": 0.08,
-        "loop": False,
-        "gravity": 1800,
-        "jump_force": -650,
-    },
-    "attack": {
-        "frame_duration": 0.07,
-        "loop": False,
-    },
-    "dash": {
-        "frame_duration": 0.06,
-        "loop": False,
-        "distance": DEFAULT_DASH_DISTANCE,
-        "duration": DEFAULT_DASH_DURATION,
-    },
-}
 
 
 class MenuScene(BaseScene):
@@ -61,43 +21,30 @@ class MenuScene(BaseScene):
     def __init__(self) -> None:
         self.data_manager = DataManager()
         self.map_config = self._load_map_config()
-        self.character_animation_data = self.data_manager.load_json(
-            "animations/characters.json",
+        self.player_config_data = self.data_manager.load_json(
+            "player_animations.json",
             default={},
         )
         self.preview_character_ids = self._get_preview_character_ids()
-        self.preview_character_index = 0
-        self.active_character_id = self.preview_character_ids[0]
-        self.player_animation_configs = self._load_character_animation_configs(
-            self.active_character_id
-        )
-        self.player_animation = PlayerAnimationSystem(self.player_animation_configs)
+        self.preview_character_index = self._get_initial_character_index()
+        self.active_character_id = self.preview_character_ids[
+            self.preview_character_index
+        ]
 
         self.map_background_surface: pygame.Surface | None = None
         self.map_land_surface: pygame.Surface | None = None
-        self.x = float(self._get_spawn_x("player", WINDOW_WIDTH // 2))
-        self.ground_y = float(self._get_player_ground_y())
-        self.y = self.ground_y
-        self.direction = 1
-        self.velocity_y = 0.0
-        self.gravity = self._get_jump_config_value("gravity", 1800)
-        self.jump_force = self._get_jump_config_value("jump_force", -650)
-        self.is_jumping = False
-        self.active_action: str | None = None
-        self.is_dashing = False
-        self.dash_timer = 0.0
-        self.dash_duration = DEFAULT_DASH_DURATION
-        self.dash_speed = DEFAULT_DASH_DISTANCE / DEFAULT_DASH_DURATION
         self.held_keys: set[int] = set()
         self.last_horizontal_key: int | None = None
+        self.player = self._create_player_controller(
+            x=float(self._get_spawn_x("player", WINDOW_WIDTH // 2)),
+            ground_y=float(self._get_player_ground_y()),
+        )
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        """Handle menu input events."""
+        """Handle player input events."""
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                self._start_player_attack()
-            elif event.button == 3:
-                self._start_player_dash()
+                self.player.request_attack()
             return
 
         if event.type == pygame.KEYUP:
@@ -113,30 +60,26 @@ class MenuScene(BaseScene):
         if event.key in (pygame.K_a, pygame.K_d):
             self.last_horizontal_key = event.key
 
-        if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
-            self._start_player_jump()
+        if event.key == pygame.K_SPACE:
+            self.player.request_jump()
 
         if event.key in (pygame.K_LCTRL, pygame.K_RCTRL):
-            self._start_player_dash()
+            self.player.request_dash(self._get_pressed_move_direction())
 
         if event.key == pygame.K_TAB:
             self._switch_preview_character()
 
     def update(self, delta_time: float) -> None:
         """Update player movement and animation."""
-        if self.is_dashing:
-            self._update_dash_movement(delta_time)
-        else:
-            self._update_horizontal_movement(delta_time)
-
-        if self.is_jumping:
-            self._update_jump_physics(delta_time)
-
-        self._sync_player_animation()
-        self.player_animation.update(delta_time)
+        self.player.update(
+            delta_time=delta_time,
+            move_direction=self._get_pressed_move_direction(),
+            run_pressed=self._is_run_pressed(),
+            movement_bounds=self._get_player_move_bounds(),
+        )
 
     def draw(self, surface: pygame.Surface) -> None:
-        """Draw the main menu."""
+        """Draw the current scene."""
         self._draw_map(surface)
         self._draw_player(surface)
 
@@ -199,72 +142,83 @@ class MenuScene(BaseScene):
 
         return pygame.transform.scale(surface, (WINDOW_WIDTH, WINDOW_HEIGHT))
 
-    def _load_character_animation_configs(
+    def _create_player_controller(
         self,
-        character_id: str,
+        x: float,
+        ground_y: float,
+    ) -> PlayerController:
+        """Create the runtime player controller for the active character."""
+        character_config = self._get_active_character_config()
+        animation_configs = self._build_animation_configs(character_config)
+        animation_system = PlayerAnimationSystem(animation_configs)
+        movement_config = character_config.get("movement", {})
+        if not isinstance(movement_config, dict):
+            movement_config = {}
+
+        return PlayerController(
+            animation=animation_system,
+            movement_config=movement_config,
+            x=x,
+            ground_y=ground_y,
+        )
+
+    def _get_active_character_config(self) -> dict[str, Any]:
+        """Return config for the active player character."""
+        characters = self.player_config_data.get("characters", {})
+        character_config = characters.get(self.active_character_id, {})
+        if not isinstance(character_config, dict):
+            raise ValueError(f"Missing player config for {self.active_character_id}.")
+
+        return character_config
+
+    def _build_animation_configs(
+        self,
+        character_config: dict[str, Any],
     ) -> dict[str, dict[str, Any]]:
-        """Load one character's animation config from JSON."""
-        character_data = self.character_animation_data.get(character_id, {})
-        if not isinstance(character_data, dict):
-            character_data = {}
+        """Merge shared character render settings into each animation config."""
+        animations = character_config.get("animations", {})
+        if not isinstance(animations, dict):
+            raise ValueError("Player animation config must contain animations.")
 
-        render_height = int(character_data.get("render_height", DEFAULT_RENDER_HEIGHT))
-        default_canvas = self._read_canvas_size(character_data)
-        animation_names = set(DEFAULT_PLAYER_ANIMATIONS)
-        for key, value in character_data.items():
-            if isinstance(value, dict) and "image" in value:
-                animation_names.add(key)
-
+        canvas_size = character_config.get(
+            "canvas_size",
+            [DEFAULT_CANVAS_SIZE[0], DEFAULT_CANVAS_SIZE[1]],
+        )
+        target_height = character_config.get("target_height")
         animation_configs: dict[str, dict[str, Any]] = {}
-        for animation_name in sorted(animation_names):
-            default_config = DEFAULT_PLAYER_ANIMATIONS.get(animation_name, {})
-            custom_config = character_data.get(animation_name, {})
-            if not isinstance(custom_config, dict):
-                custom_config = {}
-            if not default_config and not custom_config:
+        for animation_name, animation_config in animations.items():
+            if not isinstance(animation_config, dict):
                 continue
 
-            config = {**default_config, **custom_config}
-            config.setdefault("target_height", render_height)
-            config.setdefault("canvas_size", default_canvas)
-            config.setdefault("trim_alpha", True)
-            animation_configs[animation_name] = config
+            config = dict(animation_config)
+            config.setdefault("canvas_size", canvas_size)
+            if target_height is not None:
+                config.setdefault("target_height", target_height)
+            animation_configs[str(animation_name)] = config
 
         return animation_configs
 
-    def _read_canvas_size(self, character_data: dict[str, Any]) -> list[int]:
-        """Return fixed player canvas size from character data."""
-        canvas_size = character_data.get("canvas_size")
-        if isinstance(canvas_size, list) and len(canvas_size) == 2:
-            return [int(canvas_size[0]), int(canvas_size[1])]
-
-        return [DEFAULT_CANVAS_SIZE[0], DEFAULT_CANVAS_SIZE[1]]
-
     def _get_preview_character_ids(self) -> list[str]:
         """Return character IDs available for preview."""
-        configured_ids = self.map_config.get("preview_characters", [])
-        if not isinstance(configured_ids, list) or not configured_ids:
-            configured_ids = [self.map_config.get("player_character")]
+        characters = self.player_config_data.get("characters", {})
+        if isinstance(characters, dict) and characters:
+            return [str(character_id) for character_id in characters]
 
-        available_ids = [
-            str(character_id)
-            for character_id in configured_ids
-            if character_id in self.character_animation_data
-        ]
-        if available_ids:
-            return available_ids
+        return [DEFAULT_CHARACTER_ID]
 
-        if DEFAULT_CHARACTER_ID in self.character_animation_data:
-            return [DEFAULT_CHARACTER_ID]
+    def _get_initial_character_index(self) -> int:
+        """Return the initial active character index."""
+        active_character = self.player_config_data.get(
+            "active_character",
+            DEFAULT_CHARACTER_ID,
+        )
+        if active_character in self.preview_character_ids:
+            return self.preview_character_ids.index(active_character)
 
-        return [next(iter(self.character_animation_data), DEFAULT_CHARACTER_ID)]
-
-    def _load_map_config(self) -> dict[str, Any]:
-        """Load the current map config from JSON."""
-        return self.data_manager.load_json("maps/forest_path.json", default={})
+        return 0
 
     def _switch_preview_character(self) -> None:
-        """Switch preview character and preload its animations."""
+        """Switch preview character and rebuild runtime player state."""
         if len(self.preview_character_ids) <= 1:
             return
 
@@ -274,22 +228,14 @@ class MenuScene(BaseScene):
         self.active_character_id = self.preview_character_ids[
             self.preview_character_index
         ]
-        self.player_animation_configs = self._load_character_animation_configs(
-            self.active_character_id
+        self.player = self._create_player_controller(
+            x=self.player.x,
+            ground_y=float(self._get_player_ground_y()),
         )
-        self.player_animation = PlayerAnimationSystem(self.player_animation_configs)
-        self.velocity_y = 0.0
-        self.gravity = self._get_jump_config_value("gravity", 1800)
-        self.jump_force = self._get_jump_config_value("jump_force", -650)
-        self.is_jumping = False
-        self.active_action = None
-        self.is_dashing = False
-        self.dash_timer = 0.0
-        self.y = self.ground_y
 
-    def _get_jump_config_value(self, key: str, fallback: float) -> float:
-        """Return one numeric value from jump config."""
-        return float(self.player_animation_configs.get("jump", {}).get(key, fallback))
+    def _load_map_config(self) -> dict[str, Any]:
+        """Load the current map config from JSON."""
+        return self.data_manager.load_json("maps/forest_path.json", default={})
 
     def _get_pressed_move_direction(self) -> int:
         """Return the current horizontal input direction."""
@@ -309,127 +255,13 @@ class MenuScene(BaseScene):
 
         return None
 
-    def _update_horizontal_movement(self, delta_time: float) -> None:
-        """Move player horizontally when A or D is held."""
-        move_direction = self._get_pressed_move_direction()
-        if move_direction == 0:
-            return
-
-        self.direction = move_direction
-        locomotion_name = self._get_locomotion_animation_name()
-        locomotion_config = self.player_animation.get_config(locomotion_name)
-        move_speed = float(locomotion_config.get("move_speed", 0))
-        if move_speed <= 0:
-            return
-
-        left_bound, right_bound = self._get_player_move_bounds()
-        self.x += move_speed * move_direction * delta_time
-        self.x = max(left_bound, min(right_bound, self.x))
-
-    def _get_locomotion_animation_name(self) -> str:
-        """Return walk or run based on held input."""
-        if self._is_run_pressed() and self.player_animation.has_animation("run"):
-            return "run"
-
-        return "walk"
-
     def _is_run_pressed(self) -> bool:
         """Return whether the player is holding a run key."""
         return pygame.K_LSHIFT in self.held_keys or pygame.K_RSHIFT in self.held_keys
 
-    def _update_ground_animation(self) -> None:
-        """Set idle, walk or run animation while player is grounded."""
-        if self._get_pressed_move_direction() == 0:
-            self.player_animation.set_animation("idle")
-            return
-
-        self.player_animation.set_animation(self._get_locomotion_animation_name())
-
-    def _sync_player_animation(self) -> None:
-        """Apply the highest-priority animation for the current state."""
-        if self.active_action and self.player_animation.is_current_finished():
-            self._finish_player_action()
-
-        if self.active_action:
-            return
-
-        if self.is_jumping:
-            self.player_animation.set_animation("jump")
-            return
-
-        self._update_ground_animation()
-
-    def _start_player_attack(self) -> None:
-        """Play attack animation immediately."""
-        if not self.player_animation.has_animation("attack"):
-            return
-
-        self.is_dashing = False
-        self.active_action = "attack"
-        self.player_animation.set_animation("attack", restart=True)
-
-    def _start_player_dash(self) -> None:
-        """Start dodge dash movement and animation."""
-        if not self.player_animation.has_animation("dash"):
-            return
-
-        move_direction = self._get_pressed_move_direction()
-        if move_direction != 0:
-            self.direction = move_direction
-
-        dash_config = self.player_animation.get_config("dash")
-        distance = float(dash_config.get("distance", DEFAULT_DASH_DISTANCE))
-        self.dash_duration = max(
-            0.01,
-            float(dash_config.get("duration", DEFAULT_DASH_DURATION)),
-        )
-        self.dash_speed = distance / self.dash_duration
-        self.dash_timer = 0.0
-        self.is_dashing = True
-        self.active_action = "dash"
-        self.player_animation.set_animation("dash", restart=True)
-
-    def _start_player_jump(self) -> None:
-        """Start jump physics and animation."""
-        if self.is_jumping:
-            return
-
-        self.active_action = None
-        self.is_dashing = False
-        self.is_jumping = True
-        self.velocity_y = self.jump_force
-        self.player_animation.set_animation("jump", restart=True)
-
-    def _update_dash_movement(self, delta_time: float) -> None:
-        """Move player quickly during dodge dash."""
-        self.dash_timer += delta_time
-        left_bound, right_bound = self._get_player_move_bounds()
-        self.x += self.dash_speed * self.direction * delta_time
-        self.x = max(left_bound, min(right_bound, self.x))
-
-        if self.dash_timer >= self.dash_duration:
-            self.is_dashing = False
-
-    def _update_jump_physics(self, delta_time: float) -> None:
-        """Update vertical jump physics."""
-        self.velocity_y += self.gravity * delta_time
-        self.y += self.velocity_y * delta_time
-
-        if self.y >= self.ground_y:
-            self.y = self.ground_y
-            self.velocity_y = 0.0
-            self.is_jumping = False
-
-    def _finish_player_action(self) -> None:
-        """Clear one-shot action state after its animation ends."""
-        if self.active_action == "dash":
-            self.is_dashing = False
-
-        self.active_action = None
-
     def _get_player_move_bounds(self) -> tuple[int, int]:
         """Return horizontal movement bounds for the player."""
-        half_width = self.player_animation.get_current_half_width()
+        half_width = self.player.animation.get_current_half_width()
         return half_width, WINDOW_WIDTH - half_width
 
     def _get_player_ground_y(self) -> int:
@@ -472,22 +304,23 @@ class MenuScene(BaseScene):
 
     def _draw_player(self, surface: pygame.Surface) -> None:
         """Draw the animated player using a midbottom anchor."""
-        image = self.player_animation.get_current_frame()
-        if self.direction < 0:
+        image = self.player.animation.get_current_frame()
+        if self.player.direction < 0:
             image = pygame.transform.flip(image, True, False)
 
-        rect = image.get_rect(midbottom=(self.x, self.y))
+        rect = image.get_rect(midbottom=(self.player.x, self.player.y))
         surface.blit(image, rect)
 
     # Compatibility helpers for quick local tests from earlier iterations.
     def _set_neko_animation(self, animation_name: str) -> None:
         """Switch player animation."""
-        self.player_animation.set_animation(animation_name)
+        self.player.animation.set_animation(animation_name)
+        self.player.state = animation_name
 
     def _start_neko_jump(self) -> None:
         """Start player jump."""
-        self._start_player_jump()
+        self.player.request_jump()
 
     def _get_neko_draw_y(self) -> int:
         """Return player's current draw baseline."""
-        return round(self.y)
+        return round(self.player.y)

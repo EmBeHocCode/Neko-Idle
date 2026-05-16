@@ -2,7 +2,13 @@
 
 ## Trạng Thái Hiện Tại
 
-- Input preview của `hero_01` hiện hỗ trợ: `A/D` để đi, giữ `Shift` để run, `Space/W/Up` để jump, chuột trái để attack, `Ctrl` hoặc chuột phải để dash né.
+- Player animation/state/input đã được refactor sang cấu trúc mới: `data/player_animations.json` là nguồn config chính cho animation, frame count, fps/frame_duration, loop, priority và interruptible.
+- `PlayerAnimationSystem` hiện validate rõ sprite sheet một hàng ngang; nếu `sheet_width` không chia hết cho `frame_count` thì dừng bằng lỗi rõ ràng, không đoán frame width và không tự sửa asset.
+- `PlayerController` quản lý state priority, jump physics, dash, attack anti-spam và attack hit frame một lần mỗi lần đánh.
+- Jump hiện dùng đúng sprite sheet `jump`, giữ state airborne trong lúc bay, cho phép `A/D + Space` nhảy sang trái/phải và tiếp đất về idle/walk/run đúng input.
+- Attack hiện khóa animation cho tới khi chạy hết; spam chuột trái không reset về frame đầu.
+- Rendering player vẫn dùng canvas runtime 256x256 và `midbottom` anchor để đổi idle/walk/run/jump/dash/attack không lệch chân.
+- Input preview của `hero_01` hiện hỗ trợ: `A/D` để đi, giữ `Shift` để run, `Space` để jump, chuột trái để attack, `Ctrl` để dash né.
 - Các action animation `attack`, `dash`, `jump` được restart ngay khi thao tác để người chơi thấy phản hồi lập tức.
 - Nhân vật đang được ưu tiên hoàn thiện là `hero_01`; Neko tạm giữ lại trong dữ liệu và chỉ chỉnh khi có yêu cầu riêng.
 - `forest_path` hiện dùng `hero_01` làm `player_character` và `preview_characters` mặc định.

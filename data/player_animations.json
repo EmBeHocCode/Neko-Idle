@@ -1,0 +1,91 @@
+{
+  "active_character": "hero_01",
+  "characters": {
+    "hero_01": {
+      "display_name": "Hero 01",
+      "canvas_size": [256, 256],
+      "target_height": 72,
+      "movement": {
+        "walk_speed": 360,
+        "run_speed": 520,
+        "gravity": 1800,
+        "jump_force": 620,
+        "dash_distance": 180,
+        "dash_duration": 0.22
+      },
+      "animations": {
+        "idle": {
+          "path": "res/images/characters/hero_01/idle.png",
+          "frame_count": 4,
+          "fps": 8,
+          "loop": true,
+          "priority": 10,
+          "interruptible": true,
+          "trim_alpha": true,
+          "scale_mode": "consistent"
+        },
+        "walk": {
+          "path": "res/images/characters/hero_01/walk.png",
+          "frame_count": 5,
+          "fps": 10,
+          "loop": true,
+          "priority": 20,
+          "interruptible": true,
+          "trim_alpha": true,
+          "scale_mode": "consistent"
+        },
+        "run": {
+          "path": "res/images/characters/hero_01/run.png",
+          "frame_count": 7,
+          "fps": 14,
+          "loop": true,
+          "priority": 30,
+          "interruptible": true,
+          "trim_alpha": true,
+          "scale_mode": "consistent"
+        },
+        "jump": {
+          "path": "res/images/characters/hero_01/jump.png",
+          "frame_count": 5,
+          "fps": 12,
+          "loop": false,
+          "priority": 60,
+          "interruptible": false,
+          "trim_alpha": true,
+          "scale_mode": "consistent"
+        },
+        "dash": {
+          "path": "res/images/characters/hero_01/dash.png",
+          "frame_count": 4,
+          "fps": 16,
+          "loop": false,
+          "priority": 70,
+          "interruptible": false,
+          "trim_alpha": true,
+          "scale_mode": "consistent"
+        },
+        "attack": {
+          "path": "res/images/characters/hero_01/attack.png",
+          "frame_count": 6,
+          "fps": 14,
+          "loop": false,
+          "priority": 80,
+          "interruptible": false,
+          "hit_frame": 3,
+          "trim_alpha": true,
+          "scale_mode": "consistent"
+        },
+        "death": {
+          "path": "res/images/characters/hero_01/death.png",
+          "frame_count": 10,
+          "fps": 10,
+          "loop": false,
+          "priority": 100,
+          "interruptible": false,
+          "trim_alpha": true,
+          "scale_mode": "consistent"
+        }
+      }
+    }
+  }
+}

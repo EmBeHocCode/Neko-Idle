@@ -1,4 +1,4 @@
-"""Player animation loading and playback."""
+"""Player animation loading, validation, and playback."""
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -10,19 +10,38 @@ import pygame
 DEFAULT_CANVAS_SIZE = (256, 256)
 
 
+@dataclass(frozen=True)
+class AnimationDefinition:
+    """Data-driven animation config loaded from JSON."""
+
+    name: str
+    image_path: Path
+    frame_count: int
+    frame_duration: float
+    loop: bool
+    priority: int
+    interruptible: bool
+    canvas_size: tuple[int, int]
+    target_height: int | None
+    trim_alpha: bool
+    scale_mode: str
+    smooth_scale: bool
+    hit_frame: int | None = None
+
+
 @dataclass
 class AnimationClip:
     """Cached frames and playback settings for one animation."""
 
+    definition: AnimationDefinition
     frames: list[pygame.Surface]
-    frame_duration: float
-    loop: bool = True
 
 
 @dataclass
 class PreparedAnimationFrames:
     """Cut frames prepared for final scaling and canvas placement."""
 
+    definition: AnimationDefinition
     visible_frames: list[pygame.Surface]
     source_frame_size: tuple[int, int]
 
@@ -30,10 +49,17 @@ class PreparedAnimationFrames:
 class PlayerAnimationSystem:
     """Load player sprite sheets once and play cached frames."""
 
-    def __init__(self, animation_configs: dict[str, dict[str, Any]]) -> None:
-        self.configs = animation_configs
-        self.clips = self._load_clips(animation_configs)
-        self.current_name = "idle" if "idle" in self.clips else next(iter(self.clips))
+    def __init__(
+        self,
+        animation_configs: dict[str, dict[str, Any]],
+        default_animation: str = "idle",
+    ) -> None:
+        self.definitions = _load_animation_definitions(animation_configs)
+        self.clips = self._load_clips()
+        if default_animation not in self.clips:
+            default_animation = next(iter(self.clips))
+
+        self.current_name = default_animation
         self.current_frame_index = 0
         self.animation_timer = 0.0
 
@@ -53,11 +79,6 @@ class PlayerAnimationSystem:
         """Return whether a clip exists for the animation name."""
         return animation_name in self.clips
 
-    def is_current_finished(self) -> bool:
-        """Return whether the current non-looping clip reached its final frame."""
-        clip = self.clips[self.current_name]
-        return not clip.loop and self.current_frame_index >= len(clip.frames) - 1
-
     def update(self, delta_time: float) -> None:
         """Advance the current animation."""
         clip = self.clips[self.current_name]
@@ -65,10 +86,10 @@ class PlayerAnimationSystem:
             return
 
         self.animation_timer += delta_time
-        frame_duration = max(0.01, clip.frame_duration)
+        frame_duration = max(0.01, clip.definition.frame_duration)
         while self.animation_timer >= frame_duration:
             self.animation_timer -= frame_duration
-            if clip.loop:
+            if clip.definition.loop:
                 self.current_frame_index = (
                     self.current_frame_index + 1
                 ) % len(clip.frames)
@@ -80,12 +101,15 @@ class PlayerAnimationSystem:
 
     def get_current_frame(self) -> pygame.Surface:
         """Return the current rendered frame."""
-        clip = self.clips[self.current_name]
-        return clip.frames[self.current_frame_index]
+        return self.clips[self.current_name].frames[self.current_frame_index]
 
-    def get_config(self, animation_name: str) -> dict[str, Any]:
-        """Return raw config for one animation."""
-        return self.configs.get(animation_name, {})
+    def get_current_clip(self) -> AnimationClip:
+        """Return current animation clip."""
+        return self.clips[self.current_name]
+
+    def get_definition(self, animation_name: str) -> AnimationDefinition:
+        """Return one animation definition."""
+        return self.clips[animation_name].definition
 
     def get_current_half_width(self) -> int:
         """Return half of the current animation's widest visible frame."""
@@ -95,37 +119,41 @@ class PlayerAnimationSystem:
         )
         return max(1, widest_frame // 2)
 
-    def _load_clips(
-        self,
-        animation_configs: dict[str, dict[str, Any]],
-    ) -> dict[str, AnimationClip]:
-        """Load all configured animations into memory."""
-        prepared_frames = _load_prepared_animation_frames(animation_configs)
-        consistent_scale_factor = _get_consistent_scale_factor(
-            prepared_frames,
-            animation_configs,
+    def is_current_finished(self) -> bool:
+        """Return whether the current non-looping clip reached its final frame."""
+        clip = self.clips[self.current_name]
+        return (
+            not clip.definition.loop
+            and self.current_frame_index >= len(clip.frames) - 1
         )
+
+    def is_hit_frame_reached(self) -> bool:
+        """Return whether current animation reached its configured hit frame."""
+        hit_frame = self.get_current_clip().definition.hit_frame
+        return hit_frame is not None and self.current_frame_index >= hit_frame
+
+    def _load_clips(self) -> dict[str, AnimationClip]:
+        """Load all configured animations into memory."""
+        prepared_frames = {
+            name: cut_horizontal_sprite_sheet(definition)
+            for name, definition in self.definitions.items()
+        }
+        consistent_scale_factor = _get_consistent_scale_factor(prepared_frames)
 
         clips: dict[str, AnimationClip] = {}
         for animation_name, prepared in prepared_frames.items():
-            config = animation_configs[animation_name]
             scale_factor = (
                 consistent_scale_factor
-                if _uses_consistent_scale(config)
+                if _uses_consistent_scale(prepared.definition)
                 else None
             )
             frames = build_fixed_canvas_frames(
                 prepared_frames=prepared,
-                canvas_size=_read_canvas_size(config),
-                target_height=int(config.get("target_height", 0)) or None,
-                scale_mode=str(config.get("scale_mode", "visible")),
                 scale_factor=scale_factor,
-                smooth=bool(config.get("smooth_scale", False)),
             )
             clips[animation_name] = AnimationClip(
+                definition=prepared.definition,
                 frames=frames,
-                frame_duration=float(config.get("frame_duration", 0.16)),
-                loop=bool(config.get("loop", True)),
             )
 
         if not clips:
@@ -134,79 +162,102 @@ class PlayerAnimationSystem:
         return clips
 
 
-def _load_prepared_animation_frames(
+def _load_animation_definitions(
     animation_configs: dict[str, dict[str, Any]],
-) -> dict[str, PreparedAnimationFrames]:
-    """Load every sprite sheet once at animation-system startup."""
-    prepared_frames: dict[str, PreparedAnimationFrames] = {}
+) -> dict[str, AnimationDefinition]:
+    """Convert raw JSON animation config to typed definitions."""
+    definitions: dict[str, AnimationDefinition] = {}
     for animation_name, config in animation_configs.items():
-        image_path = Path(str(config.get("image", "")))
-        if not image_path.is_file():
+        if not isinstance(config, dict):
             continue
 
-        prepared_frames[animation_name] = cut_horizontal_sprite_sheet(
+        path_text = str(config.get("path") or config.get("image") or "")
+        if not path_text:
+            raise ValueError(f"Animation '{animation_name}' is missing file path.")
+
+        image_path = Path(path_text)
+        if not image_path.is_file():
+            raise FileNotFoundError(
+                f"Animation '{animation_name}' file not found: {image_path}"
+            )
+
+        frame_count = int(config["frame_count"])
+        frame_duration = _read_frame_duration(config)
+        definitions[animation_name] = AnimationDefinition(
+            name=animation_name,
             image_path=image_path,
-            frame_count=int(config["frame_count"]),
+            frame_count=frame_count,
+            frame_duration=frame_duration,
+            loop=bool(config.get("loop", True)),
+            priority=int(config.get("priority", 0)),
+            interruptible=bool(config.get("interruptible", True)),
+            canvas_size=_read_canvas_size(config),
+            target_height=_read_optional_int(config, "target_height"),
             trim_alpha=bool(config.get("trim_alpha", True)),
+            scale_mode=str(config.get("scale_mode", "visible")),
+            smooth_scale=bool(config.get("smooth_scale", False)),
+            hit_frame=_read_optional_int(config, "hit_frame"),
         )
 
-    return prepared_frames
+    return definitions
 
 
-def load_fixed_canvas_sprite_sheet(
-    image_path: Path,
-    frame_count: int,
-    canvas_size: tuple[int, int] = DEFAULT_CANVAS_SIZE,
-    target_height: int | None = None,
-    trim_alpha: bool = True,
-    scale_mode: str = "visible",
-    smooth: bool = False,
-) -> list[pygame.Surface]:
-    """Cut a horizontal sprite sheet and place frames on fixed canvases."""
-    prepared_frames = cut_horizontal_sprite_sheet(
-        image_path=image_path,
-        frame_count=frame_count,
-        trim_alpha=trim_alpha,
-    )
-    return build_fixed_canvas_frames(
-        prepared_frames=prepared_frames,
-        canvas_size=canvas_size,
-        target_height=target_height,
-        scale_mode=scale_mode,
-        smooth=smooth,
-    )
+def _read_frame_duration(config: dict[str, Any]) -> float:
+    """Read frame duration from either frame_duration or fps."""
+    if "fps" in config:
+        fps = float(config["fps"])
+        if fps <= 0:
+            raise ValueError(f"Invalid animation fps: {fps}")
+        return 1.0 / fps
+
+    return float(config.get("frame_duration", 0.12))
+
+
+def _read_optional_int(config: dict[str, Any], key: str) -> int | None:
+    """Read an optional integer config value."""
+    value = config.get(key)
+    if value is None:
+        return None
+
+    return int(value)
 
 
 def cut_horizontal_sprite_sheet(
-    image_path: Path,
-    frame_count: int,
-    trim_alpha: bool = True,
+    definition: AnimationDefinition,
 ) -> PreparedAnimationFrames:
     """Cut one horizontal sprite sheet into animation frames."""
-    sheet = _load_image(image_path)
+    sheet = _load_image(definition.image_path)
     sheet_width, sheet_height = sheet.get_size()
-    if frame_count <= 0:
-        raise ValueError(f"Invalid frame count for {image_path}: {frame_count}")
-    if sheet_width % frame_count != 0:
+    if definition.frame_count <= 0:
         raise ValueError(
-            f"Sprite sheet width must divide by frame count: {image_path}"
+            f"Animation '{definition.name}' has invalid frame_count="
+            f"{definition.frame_count}."
+        )
+    if sheet_width % definition.frame_count != 0:
+        raise ValueError(
+            "Invalid sprite sheet frame config: "
+            f"animation='{definition.name}', "
+            f"path='{definition.image_path}', "
+            f"sheet_width={sheet_width}, "
+            f"frame_count={definition.frame_count}. "
+            "Reason: sheet_width không chia hết cho frame_count."
         )
 
-    frame_width = sheet_width // frame_count
+    frame_width = sheet_width // definition.frame_count
     frame_height = sheet_height
-
     raw_frames = [
         sheet.subsurface(
             pygame.Rect(index * frame_width, 0, frame_width, frame_height)
         ).copy()
-        for index in range(frame_count)
+        for index in range(definition.frame_count)
     ]
     visible_frames = [
-        _trim_transparent_pixels(frame) if trim_alpha else frame
+        _trim_transparent_pixels(frame) if definition.trim_alpha else frame
         for frame in raw_frames
     ]
 
     return PreparedAnimationFrames(
+        definition=definition,
         visible_frames=visible_frames,
         source_frame_size=(frame_width, frame_height),
     )
@@ -214,67 +265,30 @@ def cut_horizontal_sprite_sheet(
 
 def build_fixed_canvas_frames(
     prepared_frames: PreparedAnimationFrames,
-    canvas_size: tuple[int, int] = DEFAULT_CANVAS_SIZE,
-    target_height: int | None = None,
-    scale_mode: str = "visible",
     scale_factor: float | None = None,
-    smooth: bool = False,
 ) -> list[pygame.Surface]:
     """Scale prepared frames and place each on a transparent fixed canvas."""
+    definition = prepared_frames.definition
     if scale_factor is None:
         scale_factor = _get_scale_factor(
             visible_frames=prepared_frames.visible_frames,
             source_frame_size=prepared_frames.source_frame_size,
-            scale_mode=scale_mode,
-            target_height=target_height,
-            canvas_size=canvas_size,
+            scale_mode=definition.scale_mode,
+            target_height=definition.target_height,
+            canvas_size=definition.canvas_size,
         )
 
     return [
         _place_on_fixed_canvas(
-            surface=_scale_uniform(frame, scale_factor, smooth=smooth),
-            canvas_size=canvas_size,
+            surface=_scale_uniform(
+                frame,
+                scale_factor,
+                smooth=definition.smooth_scale,
+            ),
+            canvas_size=definition.canvas_size,
         )
         for frame in prepared_frames.visible_frames
     ]
-
-
-def _uses_consistent_scale(config: dict[str, Any]) -> bool:
-    """Return whether this animation should share one character-wide scale."""
-    return str(config.get("scale_mode", "")).lower() == "consistent"
-
-
-def _get_consistent_scale_factor(
-    prepared_frames: dict[str, PreparedAnimationFrames],
-    animation_configs: dict[str, dict[str, Any]],
-) -> float | None:
-    """Return one scale factor shared by all consistent animation clips."""
-    visible_frames: list[pygame.Surface] = []
-    source_frame_size = (1, 1)
-    target_height: int | None = None
-    canvas_size = DEFAULT_CANVAS_SIZE
-
-    for animation_name, frames in prepared_frames.items():
-        config = animation_configs[animation_name]
-        if not _uses_consistent_scale(config):
-            continue
-
-        visible_frames.extend(frames.visible_frames)
-        source_frame_size = frames.source_frame_size
-        if target_height is None:
-            target_height = int(config.get("target_height", 0)) or None
-        canvas_size = _read_canvas_size(config)
-
-    if not visible_frames:
-        return None
-
-    return _get_scale_factor(
-        visible_frames=visible_frames,
-        source_frame_size=source_frame_size,
-        scale_mode="visible",
-        target_height=target_height,
-        canvas_size=canvas_size,
-    )
 
 
 def _read_canvas_size(config: dict[str, Any]) -> tuple[int, int]:
@@ -304,6 +318,42 @@ def _trim_transparent_pixels(surface: pygame.Surface) -> pygame.Surface:
     return surface.subsurface(bounding_rect).copy()
 
 
+def _uses_consistent_scale(definition: AnimationDefinition) -> bool:
+    """Return whether this animation should share one character-wide scale."""
+    return definition.scale_mode.lower() == "consistent"
+
+
+def _get_consistent_scale_factor(
+    prepared_frames: dict[str, PreparedAnimationFrames],
+) -> float | None:
+    """Return one scale factor shared by all consistent animation clips."""
+    visible_frames: list[pygame.Surface] = []
+    source_frame_size = (1, 1)
+    target_height: int | None = None
+    canvas_size = DEFAULT_CANVAS_SIZE
+
+    for frames in prepared_frames.values():
+        if not _uses_consistent_scale(frames.definition):
+            continue
+
+        visible_frames.extend(frames.visible_frames)
+        source_frame_size = frames.source_frame_size
+        if target_height is None:
+            target_height = frames.definition.target_height
+        canvas_size = frames.definition.canvas_size
+
+    if not visible_frames:
+        return None
+
+    return _get_scale_factor(
+        visible_frames=visible_frames,
+        source_frame_size=source_frame_size,
+        scale_mode="visible",
+        target_height=target_height,
+        canvas_size=canvas_size,
+    )
+
+
 def _get_scale_factor(
     visible_frames: list[pygame.Surface],
     source_frame_size: tuple[int, int],
@@ -312,7 +362,7 @@ def _get_scale_factor(
     canvas_size: tuple[int, int],
 ) -> float:
     """Return one uniform scale factor for all frames in a clip."""
-    if scale_mode.lower() == "consistent":
+    if scale_mode.lower() == "source":
         max_width, max_height = source_frame_size
     else:
         max_width = max((frame.get_width() for frame in visible_frames), default=1)
