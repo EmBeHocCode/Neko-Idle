@@ -1,5 +1,6 @@
 """Main menu scene."""
 
+from math import pi, sin
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,7 @@ DEFAULT_NEKO_ANIMATIONS = {
         "frame_duration": 0.06,
         "trim_alpha": True,
         "duration": 0.72,
+        "jump_height": 120,
     },
 }
 
@@ -60,6 +62,7 @@ class MenuScene(BaseScene):
         self.neko_direction = 1
         self.is_neko_jumping = False
         self.jump_elapsed = 0.0
+        self.jump_y_offset = 0.0
         self.held_keys: set[int] = set()
         self.last_horizontal_key: int | None = None
 
@@ -277,16 +280,22 @@ class MenuScene(BaseScene):
 
         self.is_neko_jumping = True
         self.jump_elapsed = 0.0
+        self.jump_y_offset = 0.0
         self._set_neko_animation("jump")
 
     def _update_neko_jump(self, delta_time: float) -> None:
         """Update Neko's jump animation state."""
         jump_config = self.neko_animation_configs["jump"]
         jump_duration = max(0.01, float(jump_config.get("duration", 0.72)))
+        jump_height = float(jump_config.get("jump_height", 120))
 
         self.jump_elapsed += delta_time
-        if self.jump_elapsed >= jump_duration:
+        progress = min(1.0, self.jump_elapsed / jump_duration)
+        self.jump_y_offset = sin(pi * progress) * jump_height
+
+        if progress >= 1.0:
             self.is_neko_jumping = False
+            self.jump_y_offset = 0.0
             self._update_neko_movement(0.0)
 
     def _update_neko_movement(self, delta_time: float) -> None:
@@ -313,7 +322,7 @@ class MenuScene(BaseScene):
         """Draw the animated Neko preview."""
         if not self.neko_frames:
             fallback_rect = pygame.Rect(0, 0, 96, 128)
-            fallback_rect.midbottom = (round(self.neko_x), self._get_neko_ground_y())
+            fallback_rect.midbottom = (round(self.neko_x), self._get_neko_draw_y())
             pygame.draw.rect(surface, ACCENT_COLOR, fallback_rect, border_radius=6)
             return
 
@@ -322,6 +331,10 @@ class MenuScene(BaseScene):
             frame = pygame.transform.flip(frame, True, False)
 
         frame_rect = frame.get_rect(
-            midbottom=(round(self.neko_x), self._get_neko_ground_y())
+            midbottom=(round(self.neko_x), self._get_neko_draw_y())
         )
         surface.blit(frame, frame_rect)
+
+    def _get_neko_draw_y(self) -> int:
+        """Return Neko's current draw baseline."""
+        return round(self._get_neko_ground_y() - self.jump_y_offset)

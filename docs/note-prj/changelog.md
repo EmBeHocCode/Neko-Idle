@@ -6,6 +6,7 @@
 - Cập nhật animation Neko từ frame PNG rời sang sprite sheet theo từng animation: `idle.png`, `walk.png`, `jump.png`.
 - Bỏ animation `dash` trong giai đoạn hiện tại và thay bằng `jump`; phím nhảy dùng `Space`, `W` hoặc `Up`.
 - Sprite sheet được cắt theo `frame_count` trong `data/animations/characters.json`, sau đó trim và đặt vào canvas cố định để không lệch vị trí khi đổi animation.
+- Thêm chuyển động nhảy thật cho animation `jump`: `jump_height` điều khiển độ cao, `duration` điều khiển thời gian, còn sprite sheet chỉ điều khiển pose/frame.
 - Chuyển menu preview của Neko từ tự động đi qua lại sang điều khiển bằng input.
 - Trạng thái mặc định của Neko là `idle`; giữ `A` hoặc `D` để di chuyển và phát animation `walk`.
 - Thêm animation dash 3 frame cho Neko: `dash_1.png` đến `dash_3.png`; giữ `Shift` khi di chuyển sẽ phát animation `dash`.

@@ -19,7 +19,8 @@
       "frame_count": 12,
       "frame_duration": 0.06,
       "trim_alpha": true,
-      "duration": 0.72
+      "duration": 0.72,
+      "jump_height": 120
     }
   }
 }

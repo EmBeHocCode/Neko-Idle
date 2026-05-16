@@ -14,6 +14,7 @@
 - Đã xử lý UI preview còn giống card/menu tạm: bỏ panel viền vàng và text, dùng full-window canvas để chuẩn bị dựng map.
 - Đã xử lý giới hạn di chuyển còn cách mép quá xa: bỏ biên cố định 80px và clamp theo kích thước frame để Neko sát mép nhưng không biến mất.
 - Đã xử lý nguy cơ lệch vị trí khi đổi sprite sheet kích thước khác nhau bằng canvas cố định và anchor `midbottom`.
+- Đã xử lý lỗi bấm `Space` chỉ đổi frame jump tại chỗ: thêm `jump_y_offset` để nhân vật thật sự nhảy lên theo đường cong.
 
 ## Ghi Chú Quy Trình
 
