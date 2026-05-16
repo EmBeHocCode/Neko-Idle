@@ -18,6 +18,7 @@ from src.scenes.base_scene import BaseScene
 
 DEFAULT_NEKO_RENDER_HEIGHT = 160
 DEFAULT_NEKO_CANVAS_RATIO = 2
+DEFAULT_CHARACTER_ID = "neko"
 
 DEFAULT_NEKO_ANIMATIONS = {
     "idle": {
@@ -65,9 +66,20 @@ class MenuScene(BaseScene):
     def __init__(self) -> None:
         self.data_manager = DataManager()
         self.map_config = self._load_map_config()
+        self.character_animation_data = self.data_manager.load_json(
+            "animations/characters.json",
+            default={},
+        )
+        self.preview_character_ids = self._get_preview_character_ids()
+        self.preview_character_index = 0
+        self.active_character_id = self.preview_character_ids[
+            self.preview_character_index
+        ]
         self.map_background_surface: pygame.Surface | None = None
         self.map_land_surface: pygame.Surface | None = None
-        self.neko_animation_configs = self._load_neko_animation_configs()
+        self.neko_animation_configs = self._load_character_animation_configs(
+            self.active_character_id
+        )
         self.neko_animation_name = "idle"
         self.neko_frames: list[pygame.Surface] = []
         self.current_frame_index = 0
@@ -102,6 +114,9 @@ class MenuScene(BaseScene):
 
         if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
             self._start_neko_jump()
+
+        if event.key == pygame.K_TAB:
+            self._switch_preview_character()
 
     def update(self, delta_time: float) -> None:
         """Update menu animations."""
@@ -236,13 +251,15 @@ class MenuScene(BaseScene):
             scale_mode=str(active_config.get("scale_mode", "per_frame")),
         )
 
-    def _load_neko_animation_configs(self) -> dict[str, dict[str, Any]]:
-        """Load Neko animation config from JSON."""
-        character_data = self.data_manager.load_json(
-            "animations/characters.json",
-            default={},
-        )
-        neko_data = character_data.get("neko", {})
+    def _load_character_animation_configs(
+        self,
+        character_id: str,
+    ) -> dict[str, dict[str, Any]]:
+        """Load one character's animation config from JSON."""
+        neko_data = self.character_animation_data.get(character_id, {})
+        if not isinstance(neko_data, dict):
+            neko_data = {}
+
         neko_render_height = int(
             neko_data.get("render_height", DEFAULT_NEKO_RENDER_HEIGHT)
         )
@@ -252,8 +269,20 @@ class MenuScene(BaseScene):
         )
 
         animation_configs: dict[str, dict[str, Any]] = {}
-        for animation_name, default_config in DEFAULT_NEKO_ANIMATIONS.items():
+        animation_names = set(DEFAULT_NEKO_ANIMATIONS)
+        for key, value in neko_data.items():
+            if isinstance(value, dict) and "image" in value:
+                animation_names.add(key)
+
+        for animation_name in sorted(animation_names):
+            default_config = DEFAULT_NEKO_ANIMATIONS.get(animation_name, {})
             custom_config = neko_data.get(animation_name, {})
+            if not isinstance(custom_config, dict):
+                custom_config = {}
+
+            if not default_config and not custom_config:
+                continue
+
             animation_configs[animation_name] = {
                 **default_config,
                 **custom_config,
@@ -265,12 +294,34 @@ class MenuScene(BaseScene):
 
         return animation_configs
 
+    def _get_preview_character_ids(self) -> list[str]:
+        """Return character IDs available for the preview scene."""
+        configured_ids = self.map_config.get("preview_characters", [])
+        if not isinstance(configured_ids, list) or not configured_ids:
+            configured_ids = [self.map_config.get("player_character")]
+
+        available_ids = [
+            str(character_id)
+            for character_id in configured_ids
+            if character_id in self.character_animation_data
+        ]
+        if available_ids:
+            return available_ids
+
+        if DEFAULT_CHARACTER_ID in self.character_animation_data:
+            return [DEFAULT_CHARACTER_ID]
+
+        return [next(iter(self.character_animation_data), DEFAULT_CHARACTER_ID)]
+
     def _load_map_config(self) -> dict[str, Any]:
         """Load the current map config from JSON."""
         return self.data_manager.load_json("maps/forest_path.json", default={})
 
     def _get_active_animation_config(self) -> dict[str, Any]:
         """Return config for the active Neko animation."""
+        if self.neko_animation_name not in self.neko_animation_configs:
+            self.neko_animation_name = "idle"
+
         return self.neko_animation_configs[self.neko_animation_name]
 
     def _get_cell_crop(
@@ -322,6 +373,9 @@ class MenuScene(BaseScene):
 
     def _set_neko_animation(self, animation_name: str) -> None:
         """Switch Neko animation and reset frame playback."""
+        if animation_name not in self.neko_animation_configs:
+            animation_name = "idle"
+
         if animation_name == self.neko_animation_name:
             self._ensure_neko_frames()
             return
@@ -330,6 +384,32 @@ class MenuScene(BaseScene):
         self.neko_frames = []
         self.current_frame_index = 0
         self.animation_timer = 0.0
+        self._ensure_neko_frames()
+
+    def _switch_preview_character(self) -> None:
+        """Switch the preview character without changing map state."""
+        if len(self.preview_character_ids) <= 1:
+            return
+
+        self.preview_character_index = (
+            self.preview_character_index + 1
+        ) % len(self.preview_character_ids)
+        self.active_character_id = self.preview_character_ids[
+            self.preview_character_index
+        ]
+        self.neko_animation_configs = self._load_character_animation_configs(
+            self.active_character_id
+        )
+        self.neko_animation_name = "idle"
+        self.neko_frames = []
+        self.current_frame_index = 0
+        self.animation_timer = 0.0
+        self.is_neko_jumping = False
+        self.velocity_y = 0.0
+        self.jump_elapsed = 0.0
+        self.jump_duration = self._get_jump_duration(
+            self.neko_animation_configs.get("jump", {})
+        )
         self._ensure_neko_frames()
 
     def _get_pressed_move_direction(self) -> int:

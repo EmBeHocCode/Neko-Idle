@@ -2,6 +2,9 @@
 
 ## 2026-05-17
 
+- Thêm nhân vật thử nghiệm `hero_01` từ bộ asset `Full Version`: convert GIF animation 60x60 thành sprite sheet PNG trong `res/images/characters/hero_01/`.
+- Cấu hình `hero_01` trong `data/animations/characters.json` với các animation: idle, walk, run, jump, attack, dash, hurt, death, climb, crouch, crouching_walk, hi, slide, slide_forward và spin.
+- Cập nhật `MenuScene` để hỗ trợ nhiều character config và bấm `Tab` đổi preview giữa `neko` và `hero_01`.
 - Thêm nền map đầu tiên cho `forest_path`: `forest_background.png` 1920x1080 và `forest_land.png` 1920x1080 trong `res/images/maps/`.
 - Ghép `forest_land.png` từ các tile đất `1.png`, `2.png`, `3.png`, `4.png`; land nằm ở đáy ảnh và dùng `ground_y` trong JSON để làm baseline va chạm.
 - Cập nhật `MenuScene` để vẽ background + land từ `data/maps/forest_path.json` trước khi vẽ Neko.

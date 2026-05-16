@@ -27,6 +27,8 @@
 - Đã có `DataManager` để nạp JSON trung tâm.
 - Map preview đầu tiên đã có nền `forest_background.png` và land `forest_land.png` trong `res/images/maps/`.
 - `MenuScene` hiện đọc `data/maps/forest_path.json` để vẽ background/land và lấy `ground_y` từ top land làm baseline va chạm cho Neko.
+- Đã thêm nhân vật thử nghiệm `hero_01` với full animation từ bộ asset mua ngoài; có thể bấm `Tab` trong preview scene để đổi giữa `neko` và `hero_01`.
+- Asset `hero_01` hiện nằm trong `res/images/characters/hero_01/`, gồm sprite sheet theo từng animation và file `preview.png` để xem nhanh.
 - Gameplay chính chưa được triển khai.
 
 ## Việc Cần Ưu Tiên Tiếp Theo

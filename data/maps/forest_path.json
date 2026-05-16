@@ -3,6 +3,8 @@
   "name": "Forest Path",
   "source_size": [1920, 1080],
   "background": "res/images/maps/forest_background.png",
+  "player_character": "neko",
+  "preview_characters": ["neko", "hero_01"],
   "land": {
     "image": "res/images/maps/forest_land.png",
     "ground_y": 960,

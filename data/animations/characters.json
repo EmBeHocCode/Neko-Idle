@@ -34,5 +34,126 @@
       "landing_height": 24,
       "apex_velocity": 140
     }
+  },
+  "hero_01": {
+    "render_height": 60,
+    "canvas_size": [120, 120],
+    "idle": {
+      "image": "res/images/characters/hero_01/idle.png",
+      "frame_count": 16,
+      "frame_duration": 0.12,
+      "trim_alpha": true,
+      "scale_mode": "consistent"
+    },
+    "walk": {
+      "image": "res/images/characters/hero_01/walk.png",
+      "frame_count": 16,
+      "frame_duration": 0.12,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "move_speed": 360
+    },
+    "run": {
+      "image": "res/images/characters/hero_01/run.png",
+      "frame_count": 16,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "move_speed": 520
+    },
+    "jump": {
+      "image": "res/images/characters/hero_01/jump.png",
+      "frame_count": 30,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false,
+      "gravity": 1800,
+      "jump_force": -620
+    },
+    "attack": {
+      "image": "res/images/characters/hero_01/attack.png",
+      "frame_count": 16,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false
+    },
+    "dash": {
+      "image": "res/images/characters/hero_01/dash.png",
+      "frame_count": 16,
+      "frame_duration": 0.06,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false
+    },
+    "hurt": {
+      "image": "res/images/characters/hero_01/hurt.png",
+      "frame_count": 40,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false
+    },
+    "death": {
+      "image": "res/images/characters/hero_01/death.png",
+      "frame_count": 14,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false
+    },
+    "climb": {
+      "image": "res/images/characters/hero_01/climb.png",
+      "frame_count": 6,
+      "frame_duration": 0.1,
+      "trim_alpha": true,
+      "scale_mode": "consistent"
+    },
+    "crouch": {
+      "image": "res/images/characters/hero_01/crouch.png",
+      "frame_count": 40,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent"
+    },
+    "crouching_walk": {
+      "image": "res/images/characters/hero_01/crouching_walk.png",
+      "frame_count": 8,
+      "frame_duration": 0.1,
+      "trim_alpha": true,
+      "scale_mode": "consistent"
+    },
+    "hi": {
+      "image": "res/images/characters/hero_01/hi.png",
+      "frame_count": 18,
+      "frame_duration": 0.05,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false
+    },
+    "slide": {
+      "image": "res/images/characters/hero_01/slide.png",
+      "frame_count": 16,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false
+    },
+    "slide_forward": {
+      "image": "res/images/characters/hero_01/slide_forward.png",
+      "frame_count": 16,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent",
+      "loop": false
+    },
+    "spin": {
+      "image": "res/images/characters/hero_01/spin.png",
+      "frame_count": 8,
+      "frame_duration": 0.07,
+      "trim_alpha": true,
+      "scale_mode": "consistent"
+    }
   }
 }

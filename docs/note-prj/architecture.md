@@ -58,6 +58,7 @@ build/
 - Animation idle của Neko dùng sprite sheet `res/images/characters/idle.png`.
 - Animation walk của Neko dùng sprite sheet `res/images/characters/walk.png`.
 - Animation jump của Neko dùng sprite sheet `res/images/characters/jump.png`.
+- Nhân vật `hero_01` dùng sprite sheet theo từng animation trong `res/images/characters/hero_01/`; các sheet này được convert từ GIF 60x60 để giữ canvas đồng bộ.
 - Sprite sheet được cắt theo `frame_count`, trim vùng trong suốt, scale theo `render_height`, rồi đặt vào canvas cố định bằng anchor `midbottom` để giữ vị trí ổn định giữa các animation.
 - `neko.render_height` trong `data/animations/characters.json` là kích thước render chung cho toàn bộ animation Neko; từng animation vẫn có thể dùng `target_height` riêng nếu cần ngoại lệ.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
@@ -67,6 +68,7 @@ build/
 ## Character Input State
 
 - `MenuScene` chọn animation Neko theo trạng thái input thay vì tự chạy preview.
+- `MenuScene` hiện hỗ trợ nhiều character config từ `data/animations/characters.json`; danh sách preview lấy từ `forest_path.preview_characters`, và `Tab` đổi nhân vật đang xem.
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
 - Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
@@ -81,6 +83,7 @@ build/
 
 - `data/animations/characters.json`: cấu hình frame rời hoặc spritesheet, tốc độ frame và crop.
 - Animation character hiện ưu tiên sprite sheet qua `image` và `frame_count`; danh sách frame rời chỉ còn là fallback kỹ thuật.
+- Mỗi character có thể có `render_height`, `canvas_size` và nhiều animation khác nhau; `idle`, `walk`, `jump` là nhóm tối thiểu để preview bằng input hiện tại.
 - `data/maps/forest_path.json`: dữ liệu map mẫu, spawn point, object và NPC.
 - `forest_path.json` hiện có `source_size`, `background`, `land.image`, `land.ground_y` và `land.collision_rects`; `ground_y` được scale về kích thước cửa sổ để làm baseline đứng/nhảy của Neko.
 - `data/config/game_config.json`: cấu hình game tổng quát để mở rộng sau.
