@@ -18,6 +18,8 @@
       "image": "res/images/characters/jump.png",
       "frame_count": 12,
       "frame_duration": 0.06,
+      "loop": false,
+      "scale_mode": "consistent",
       "trim_alpha": true,
       "gravity": 1800,
       "jump_force": -650

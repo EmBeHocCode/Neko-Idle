@@ -40,6 +40,8 @@ DEFAULT_NEKO_ANIMATIONS = {
         "frame_count": 12,
         "target_height": 160,
         "frame_duration": 0.06,
+        "loop": False,
+        "scale_mode": "consistent",
         "trim_alpha": True,
         "gravity": 1800,
         "jump_force": -650,
@@ -63,6 +65,10 @@ class MenuScene(BaseScene):
         self.neko_direction = 1
         self.is_neko_jumping = False
         self.velocity_y = 0.0
+        self.jump_elapsed = 0.0
+        self.jump_duration = self._get_jump_duration(
+            self.neko_animation_configs["jump"]
+        )
         self.held_keys: set[int] = set()
         self.last_horizontal_key: int | None = None
 
@@ -90,21 +96,35 @@ class MenuScene(BaseScene):
 
         if self.is_neko_jumping:
             self._update_jump_physics(delta_time)
+            if self.is_neko_jumping:
+                self._sync_neko_jump_frame()
+                return
         else:
             self._update_ground_animation()
 
+        self._update_neko_animation_frame(delta_time)
+
+    def _update_neko_animation_frame(self, delta_time: float) -> None:
+        """Advance the active Neko animation by time."""
         if not self.neko_frames:
             return
 
         active_config = self._get_active_animation_config()
-        frame_duration = float(active_config.get("frame_duration", 0.16))
+        frame_duration = max(0.01, float(active_config.get("frame_duration", 0.16)))
+        should_loop = bool(active_config.get("loop", True))
         self.animation_timer += delta_time
 
-        if self.animation_timer >= frame_duration:
-            self.animation_timer = 0.0
-            self.current_frame_index = (self.current_frame_index + 1) % len(
-                self.neko_frames
-            )
+        while self.animation_timer >= frame_duration:
+            self.animation_timer -= frame_duration
+            if should_loop:
+                self.current_frame_index = (self.current_frame_index + 1) % len(
+                    self.neko_frames
+                )
+            else:
+                self.current_frame_index = min(
+                    self.current_frame_index + 1,
+                    len(self.neko_frames) - 1,
+                )
 
     def draw(self, surface: pygame.Surface) -> None:
         """Draw the main menu."""
@@ -126,6 +146,7 @@ class MenuScene(BaseScene):
                 target_height=int(active_config["target_height"]),
                 trim_alpha=bool(active_config.get("trim_alpha", True)),
                 canvas_size=self._get_canvas_size(active_config),
+                scale_mode=str(active_config.get("scale_mode", "per_frame")),
             )
             return
 
@@ -143,6 +164,7 @@ class MenuScene(BaseScene):
             cell_crop=self._get_cell_crop(active_config),
             canvas_size=self._get_canvas_size(active_config),
             smooth=bool(active_config.get("smooth_scale", False)),
+            scale_mode=str(active_config.get("scale_mode", "per_frame")),
         )
 
     def _load_neko_animation_configs(self) -> dict[str, dict[str, Any]]:
@@ -282,14 +304,18 @@ class MenuScene(BaseScene):
 
         jump_config = self.neko_animation_configs["jump"]
         self.is_neko_jumping = True
+        self.jump_elapsed = 0.0
+        self.jump_duration = self._get_jump_duration(jump_config)
         self.velocity_y = float(jump_config.get("jump_force", -650))
         self._set_neko_animation("jump")
+        self.current_frame_index = 0
 
     def _update_jump_physics(self, delta_time: float) -> None:
         """Update Neko's vertical jump physics."""
         jump_config = self.neko_animation_configs["jump"]
         gravity = float(jump_config.get("gravity", 1800))
 
+        self.jump_elapsed += delta_time
         self.velocity_y += gravity * delta_time
         self.neko_y += self.velocity_y * delta_time
 
@@ -297,7 +323,35 @@ class MenuScene(BaseScene):
             self.neko_y = self.ground_y
             self.velocity_y = 0.0
             self.is_neko_jumping = False
+            self.jump_elapsed = 0.0
             self._update_ground_animation()
+
+    def _sync_neko_jump_frame(self) -> None:
+        """Select jump frame from jump progress instead of looping by timer."""
+        if not self.neko_frames:
+            self._ensure_neko_frames()
+        if not self.neko_frames:
+            return
+
+        jump_progress = min(1.0, self.jump_elapsed / max(0.01, self.jump_duration))
+        self.current_frame_index = min(
+            len(self.neko_frames) - 1,
+            int(jump_progress * len(self.neko_frames)),
+        )
+
+    def _get_jump_duration(self, jump_config: dict[str, Any]) -> float:
+        """Estimate total airtime so jump frames can follow physics."""
+        if "animation_duration" in jump_config:
+            return max(0.01, float(jump_config["animation_duration"]))
+
+        gravity = float(jump_config.get("gravity", 1800))
+        jump_force = abs(float(jump_config.get("jump_force", -650)))
+        if gravity > 0 and jump_force > 0:
+            return (jump_force * 2) / gravity
+
+        frame_count = int(jump_config.get("frame_count", 1))
+        frame_duration = float(jump_config.get("frame_duration", 0.06))
+        return max(0.01, frame_count * frame_duration)
 
     def _update_horizontal_movement(self, delta_time: float) -> None:
         """Move Neko horizontally when the player holds A or D."""

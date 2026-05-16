@@ -60,6 +60,7 @@ build/
 - `neko.render_height` trong `data/animations/characters.json` là kích thước render chung cho toàn bộ animation Neko; từng animation vẫn có thể dùng `target_height` riêng nếu cần ngoại lệ.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
 - Loader hỗ trợ `trim_alpha` trong JSON; animation Neko trim phần trong suốt rồi đặt lên canvas cố định để giữ khung render ổn định.
+- Loader hỗ trợ `scale_mode: "consistent"` để dùng cùng một tỉ lệ scale cho toàn bộ frame trong một animation; `jump` dùng chế độ này để tránh nhân vật bị to nhỏ giữa các frame.
 
 ## Character Input State
 
@@ -67,7 +68,8 @@ build/
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
 - Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
-- `jump` tách pose khỏi physics: sprite sheet quyết định frame/pose, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
+- `jump` tách pose khỏi physics: sprite sheet quyết định pose, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
+- Frame `jump` không loop bằng timer; `MenuScene` chọn frame theo tiến trình vật lý của cú nhảy để tránh nhảy từ frame cuối về frame đầu trước khi tiếp đất.
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
 - Nếu `A` và `D` cùng được giữ, phím hướng được bấm gần nhất sẽ được ưu tiên để đổi hướng mượt hơn.
 - Biên trái/phải được tính theo nửa chiều rộng frame hiện tại, nên Neko có thể chạm sát mép client nhưng sprite không bị mất khỏi màn; đây là điểm chuẩn để sau này gắn trigger chuyển map.

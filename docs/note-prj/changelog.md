@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-05-17
+
+- Làm mượt animation `jump`: frame jump không còn loop bằng timer trong lúc đang bay, mà được chọn theo tiến trình vật lý của cú nhảy.
+- Thêm `scale_mode: "consistent"` cho sprite sheet để giữ cùng một tỉ lệ scale trong toàn bộ animation, tránh frame jump bị phóng to/thu nhỏ gây cảm giác giật.
+
 ## 2026-05-16
 
 - Chuyển hệ thống asset nhân vật từ `assets/` sang `res/`.

@@ -15,6 +15,7 @@ def load_sprite_sheet_frames(
     cell_crop: tuple[int, int, int, int] | None = None,
     canvas_size: tuple[int, int] | None = None,
     smooth: bool = False,
+    scale_mode: str = "per_frame",
 ) -> list[pygame.Surface]:
     """Load a sprite sheet and split it into frames."""
     sheet = pygame.image.load(str(image_path)).convert_alpha()
@@ -43,20 +44,26 @@ def load_sprite_sheet_frames(
                 crop_rect = pygame.Rect(cell_crop).clip(frame.get_rect())
                 frame = frame.subsurface(crop_rect).copy()
 
-            frames.append(
-                _prepare_frame(
-                    surface=frame,
+            frames.append(frame)
+
+            if len(frames) >= total_frames:
+                return _prepare_frames(
+                    surfaces=frames,
                     target_height=target_height,
                     trim_alpha=trim_alpha,
                     smooth=smooth,
                     canvas_size=canvas_size,
+                    scale_mode=scale_mode,
                 )
-            )
 
-            if len(frames) >= total_frames:
-                return frames
-
-    return frames
+    return _prepare_frames(
+        surfaces=frames,
+        target_height=target_height,
+        trim_alpha=trim_alpha,
+        smooth=smooth,
+        canvas_size=canvas_size,
+        scale_mode=scale_mode,
+    )
 
 
 def load_frame_sequence(
@@ -64,23 +71,68 @@ def load_frame_sequence(
     target_height: int | None = None,
     trim_alpha: bool = True,
     canvas_size: tuple[int, int] | None = None,
+    scale_mode: str = "per_frame",
 ) -> list[pygame.Surface]:
     """Load animation frames from separate image files."""
     frames: list[pygame.Surface] = []
 
     for image_path in image_paths:
-        frame = pygame.image.load(str(image_path)).convert_alpha()
-        frames.append(
+        frames.append(pygame.image.load(str(image_path)).convert_alpha())
+
+    return _prepare_frames(
+        surfaces=frames,
+        target_height=target_height,
+        trim_alpha=trim_alpha,
+        smooth=False,
+        canvas_size=canvas_size,
+        scale_mode=scale_mode,
+    )
+
+
+def _prepare_frames(
+    surfaces: list[pygame.Surface],
+    target_height: int | None,
+    trim_alpha: bool,
+    smooth: bool,
+    canvas_size: tuple[int, int] | None,
+    scale_mode: str,
+) -> list[pygame.Surface]:
+    """Prepare an animation while optionally keeping one scale across frames."""
+    if scale_mode == "consistent":
+        trimmed_frames = [
+            _trim_transparent_pixels(surface) if trim_alpha else surface
+            for surface in surfaces
+        ]
+        reference_height = max(
+            (frame.get_height() for frame in trimmed_frames),
+            default=0,
+        )
+        scale_factor = None
+        if target_height is not None and reference_height > 0:
+            scale_factor = target_height / reference_height
+
+        return [
             _prepare_frame(
                 surface=frame,
-                target_height=target_height,
-                trim_alpha=trim_alpha,
-                smooth=False,
+                target_height=None,
+                trim_alpha=False,
+                smooth=smooth,
                 canvas_size=canvas_size,
+                scale_factor=scale_factor,
             )
-        )
+            for frame in trimmed_frames
+        ]
 
-    return frames
+    return [
+        _prepare_frame(
+            surface=surface,
+            target_height=target_height,
+            trim_alpha=trim_alpha,
+            smooth=smooth,
+            canvas_size=canvas_size,
+        )
+        for surface in surfaces
+    ]
 
 
 def _prepare_frame(
@@ -89,6 +141,7 @@ def _prepare_frame(
     trim_alpha: bool,
     smooth: bool,
     canvas_size: tuple[int, int] | None,
+    scale_factor: float | None = None,
 ) -> pygame.Surface:
     """Trim and scale one animation frame."""
     frame = surface
@@ -96,7 +149,9 @@ def _prepare_frame(
     if trim_alpha:
         frame = _trim_transparent_pixels(frame)
 
-    if target_height is not None:
+    if scale_factor is not None:
+        frame = _scale_by_factor(frame, scale_factor, smooth=smooth)
+    elif target_height is not None:
         frame = _scale_to_height(frame, target_height, smooth=smooth)
 
     if canvas_size is not None:
@@ -132,6 +187,24 @@ def _scale_to_height(
         return pygame.transform.smoothscale(surface, target_size)
 
     return pygame.transform.scale(surface, target_size)
+
+
+def _scale_by_factor(
+    surface: pygame.Surface,
+    scale_factor: float,
+    smooth: bool = True,
+) -> pygame.Surface:
+    """Scale a frame by an animation-wide factor."""
+    width, height = surface.get_size()
+    target_width = max(1, int(width * scale_factor))
+    target_height = max(1, int(height * scale_factor))
+    target_size = (target_width, target_height)
+
+    if smooth:
+        return pygame.transform.smoothscale(surface, target_size)
+
+    return pygame.transform.scale(surface, target_size)
+
 
 def _place_on_canvas(
     surface: pygame.Surface,

@@ -11,6 +11,7 @@
 - Animation `dash` đã được loại khỏi giai đoạn hiện tại; hệ thống đang dùng `jump` thay thế.
 - Đã xử lý lỗi chạm rìa khiến điều khiển bị kẹt: input di chuyển không phụ thuộc trực tiếp vào `pygame.key.get_pressed()`, và phím hướng mới nhất được ưu tiên khi `A`/`D` cùng được giữ.
 - Đã xử lý lỗi animation Neko bị lệch to nhỏ dù sprite sheet khác kích thước: frame sau khi cắt được trim, scale theo `render_height`, rồi đặt vào canvas cố định.
+- Đã xử lý cảm giác `jump` bị giật/đơ: nguyên nhân là frame jump bị loop gần lúc tiếp đất và từng frame bị scale riêng theo chiều cao riêng; hiện jump sync theo physics và dùng scale đồng nhất cho cả animation.
 - Đã xử lý UI preview còn giống card/menu tạm: bỏ panel viền vàng và text, dùng full-window canvas để chuẩn bị dựng map.
 - Đã xử lý giới hạn di chuyển còn cách mép quá xa: bỏ biên cố định 80px và clamp theo kích thước frame để Neko sát mép nhưng không biến mất.
 - Đã xử lý nguy cơ lệch vị trí khi đổi sprite sheet kích thước khác nhau bằng canvas cố định và anchor `midbottom`.
