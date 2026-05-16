@@ -2,6 +2,8 @@
 
 ## Đang Theo Dõi
 
+- Đã xử lý nguy cơ `hero_01` bị phóng to/thu nhỏ giữa các animation: `scale_mode: "consistent"` hiện dùng một scale factor chung cho toàn bộ animation của nhân vật.
+- Đã chuyển preview/player mặc định sang `hero_01`; Neko được giữ lại trong data và không chỉnh thêm cho tới khi có yêu cầu riêng.
 - Chưa có bug kỹ thuật trong gameplay vì gameplay chưa được triển khai.
 - File `docs/project-main/Neko_Idle_Quest_Y_Tuong_Du_An.docx` có trong cấu trúc mục tiêu nhưng chưa tồn tại trong workspace hiện tại.
 - Pygame trên Python 3.12 có thể hiện warning `pkg_resources is deprecated` khi import; hiện chưa ảnh hưởng MVP.

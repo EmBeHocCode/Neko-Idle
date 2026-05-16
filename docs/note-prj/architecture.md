@@ -50,7 +50,7 @@ build/
 
 - `Game` trong `src/core/game.py` chịu trách nhiệm khởi tạo Pygame, tạo cửa sổ, quản lý clock/FPS và gọi scene hiện tại.
 - `MenuScene` là scene đầu tiên, render màn hình khởi động MVP-1.
-- `MenuScene` hiện là full-window preview scene: vẽ map background, land và Neko theo dữ liệu `data/maps/forest_path.json`.
+- `MenuScene` hiện là full-window preview scene: vẽ map background, land và nhân vật player mặc định theo dữ liệu `data/maps/forest_path.json`.
 - `Game.run(max_frames=...)` hỗ trợ test headless để kiểm tra loop mà không cần mở cửa sổ lâu.
 
 ## Sprite Sheet
@@ -62,6 +62,7 @@ build/
 - Animation walk của Neko dùng sprite sheet `res/images/characters/walk.png`.
 - Animation jump của Neko dùng sprite sheet `res/images/characters/jump.png`.
 - Nhân vật `hero_01` dùng sprite sheet theo từng animation trong `res/images/characters/hero_01/`; các sheet này được convert từ GIF 60x60 để giữ canvas đồng bộ.
+- Với nhân vật có `scale_mode: "consistent"` như `hero_01`, `PlayerAnimationSystem` tính một hệ số scale chung từ toàn bộ animation đã trim, rồi áp dụng lại cho mọi clip để giữ tỉ lệ nhân vật ổn định giữa idle/walk/run/jump.
 - Sprite sheet được cắt theo `frame_count`, trim vùng trong suốt, scale đều theo `render_height`, rồi đặt vào canvas cố định 256x256 bằng anchor `midbottom` để giữ vị trí ổn định giữa các animation.
 - `neko.render_height` trong `data/animations/characters.json` là kích thước render chung cho toàn bộ animation Neko; từng animation vẫn có thể dùng `target_height` riêng nếu cần ngoại lệ.
 - Loader player hiện ưu tiên sprite sheet sạch một hàng ngang; nếu asset bị lẫn mảnh frame kế bên thì cần sửa/cắt lại asset trước khi đưa vào config.
@@ -72,6 +73,7 @@ build/
 
 - `MenuScene` chọn animation Neko theo trạng thái input thay vì tự chạy preview.
 - `MenuScene` hiện hỗ trợ nhiều character config từ `data/animations/characters.json`; danh sách preview lấy từ `forest_path.preview_characters`, và `Tab` đổi nhân vật đang xem.
+- Từ 2026-05-17, `forest_path.player_character` và `forest_path.preview_characters` ưu tiên `hero_01`; Neko vẫn nằm trong config nhưng không là nhân vật preview mặc định.
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
 - Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
@@ -87,7 +89,7 @@ build/
 - Animation character hiện ưu tiên sprite sheet qua `image` và `frame_count`; danh sách frame rời chỉ còn là fallback kỹ thuật.
 - Mỗi character có thể có `render_height`, `canvas_size` và nhiều animation khác nhau; `idle`, `walk`, `jump` là nhóm tối thiểu để preview bằng input hiện tại.
 - `data/maps/forest_path.json`: dữ liệu map mẫu, spawn point, object và NPC.
-- `forest_path.json` hiện có `source_size`, `background`, `land.image`, `land.ground_y` và `land.collision_rects`; `ground_y` được scale về kích thước cửa sổ để làm baseline đứng/nhảy của Neko.
+- `forest_path.json` hiện có `source_size`, `background`, `land.image`, `land.ground_y` và `land.collision_rects`; `ground_y` được scale về kích thước cửa sổ để làm baseline đứng/nhảy của player.
 - `data/config/game_config.json`: cấu hình game tổng quát để mở rộng sau.
 - Cấu trúc này tham khảo ý tưởng `GameDataManager` và `res/data/` từ `E:\FULLSOURCEAVATAR\`, nhưng triển khai bằng Python/JSON.
 

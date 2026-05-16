@@ -2,6 +2,8 @@
 
 ## 2026-05-17
 
+- Đặt `hero_01` làm nhân vật mặc định của `forest_path`; Neko được giữ lại trong data nhưng không còn nằm trong preview mặc định cho tới khi có yêu cầu riêng.
+- Cập nhật `PlayerAnimationSystem` để `scale_mode: "consistent"` dùng một hệ số scale chung cho toàn bộ animation của cùng nhân vật, giúp `hero_01` không bị to/nhỏ bất thường khi đổi idle/walk/jump/run.
 - Refactor hệ thống player animation sang `src/core/player_animation.py`: load/cắt/cache toàn bộ sprite sheet một lần, chuẩn hóa frame vào canvas 256x256 và vẽ bằng anchor `midbottom`.
 - Chuẩn hóa config Neko: `idle` 4 frame, `walk` 8 frame, `jump` 6 frame; `jump.png` được rút lại thành 6 frame ngang đúng cấu hình.
 - Giữ jump physics riêng trong scene với `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y`.

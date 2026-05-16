@@ -16,7 +16,7 @@ from src.core.settings import (
 from src.scenes.base_scene import BaseScene
 
 
-DEFAULT_CHARACTER_ID = "neko"
+DEFAULT_CHARACTER_ID = "hero_01"
 DEFAULT_RENDER_HEIGHT = 60
 DEFAULT_PLAYER_ANIMATIONS = {
     "idle": {

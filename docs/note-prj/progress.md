@@ -2,6 +2,9 @@
 
 ## Trạng Thái Hiện Tại
 
+- Nhân vật đang được ưu tiên hoàn thiện là `hero_01`; Neko tạm giữ lại trong dữ liệu và chỉ chỉnh khi có yêu cầu riêng.
+- `forest_path` hiện dùng `hero_01` làm `player_character` và `preview_characters` mặc định.
+- Animation của `hero_01` dùng `scale_mode: "consistent"` với hệ số scale chung toàn bộ animation để tránh lệch kích thước khi đổi trạng thái.
 - Dự án đang ở giai đoạn chuẩn bị trước MVP.
 - Repository Git đã được khởi tạo và liên kết với GitHub.
 - README cơ bản đã được tạo.
@@ -28,7 +31,7 @@
 - Đã có `DataManager` để nạp JSON trung tâm.
 - Map preview đầu tiên đã có nền `forest_background.png` và land `forest_land.png` trong `res/images/maps/`.
 - `MenuScene` hiện đọc `data/maps/forest_path.json` để vẽ background/land và lấy `ground_y` từ top land làm baseline va chạm cho Neko.
-- Đã thêm nhân vật thử nghiệm `hero_01` với full animation từ bộ asset mua ngoài; có thể bấm `Tab` trong preview scene để đổi giữa `neko` và `hero_01`.
+- Đã thêm nhân vật thử nghiệm `hero_01` với full animation từ bộ asset mua ngoài; hiện `hero_01` là nhân vật preview/player mặc định.
 - Asset `hero_01` hiện nằm trong `res/images/characters/hero_01/`, gồm sprite sheet theo từng animation và file `preview.png` để xem nhanh.
 - Gameplay chính chưa được triển khai.
 
