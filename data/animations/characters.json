@@ -1,6 +1,7 @@
 {
   "neko": {
     "render_height": 60,
+    "canvas_size": [256, 256],
     "idle": {
       "image": "res/images/characters/idle.png",
       "frame_count": 4,
@@ -16,28 +17,17 @@
     },
     "jump": {
       "image": "res/images/characters/jump.png",
-      "frame_count": 12,
-      "frame_duration": 0.06,
+      "frame_count": 6,
+      "frame_duration": 0.08,
       "loop": false,
-      "scale_mode": "consistent",
       "trim_alpha": true,
       "gravity": 1800,
-      "jump_force": -650,
-      "pose_mode": "velocity",
-      "pose_frames": {
-        "takeoff": 0,
-        "rise": 4,
-        "apex": 6,
-        "fall": 8,
-        "land": 10
-      },
-      "landing_height": 24,
-      "apex_velocity": 140
+      "jump_force": -650
     }
   },
   "hero_01": {
     "render_height": 60,
-    "canvas_size": [120, 120],
+    "canvas_size": [256, 256],
     "idle": {
       "image": "res/images/characters/hero_01/idle.png",
       "frame_count": 16,

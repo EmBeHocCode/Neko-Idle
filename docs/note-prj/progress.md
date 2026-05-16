@@ -15,9 +15,10 @@
 - Animation idle/walk/jump hiện dùng sprite sheet riêng trong `res/images/characters/`.
 - Menu preview hiện đã có trạng thái `idle`, di chuyển bằng `A`/`D`, và bấm `Space`/`W`/`Up` để phát animation `jump` kèm physics nhảy thật.
 - Jump physics hiện dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y`; khi tiếp đất sẽ quay lại `idle` hoặc `walk`.
-- Animation `jump` hiện phát theo tiến trình vật lý của cú nhảy và không loop frame trong lúc đang bay.
-- Sprite sheet `jump` hiện dùng `scale_mode: "consistent"` để giữ tỉ lệ scale đồng nhất giữa các frame, giảm cảm giác giật do frame bị to nhỏ bất thường.
-- `jump` hiện dùng `pose_mode: "velocity"` để chọn pose theo vận tốc/độ cao, hạn chế khựng do sprite sheet có motion offset sẵn trong từng frame.
+- Hệ thống player animation đã được refactor sang `PlayerAnimationSystem`: toàn bộ frame được cắt và cache vào RAM một lần khi scene khởi động.
+- Idle/walk/jump của Neko hiện dùng config rõ ràng: `idle` 4 frame, `walk` 8 frame, `jump` 6 frame.
+- Mọi frame player được đặt lên canvas cố định 256x256, nền trong suốt, căn baseline bằng `midbottom` để đổi animation không lệch chân.
+- Jump physics tách riêng khỏi animation bằng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y`; khi tiếp đất sẽ quay lại `idle` hoặc `walk`.
 - `Player` data model đã có các field physics cơ bản: `velocity_y`, `gravity`, `jump_force`, `is_jumping`, `ground_y`.
 - Kích thước render của idle/walk/jump đã được chuẩn hóa bằng canvas cố định để giảm lệch hình giữa các animation.
 - Tốc độ đi bộ thử nghiệm của Neko hiện là 400 px/s.

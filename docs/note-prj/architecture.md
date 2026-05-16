@@ -33,8 +33,9 @@ build/
 ## Trách Nhiệm Module
 
 - `main.py`: entry point của dự án.
-- `src/core/`: điều phối game, settings, asset loader, save manager.
+- `src/core/`: điều phối game, settings, asset loader, save manager và player animation.
 - `src/core/data_manager.py`: nạp và cache JSON game data.
+- `src/core/player_animation.py`: cắt sprite sheet một hàng ngang, chuẩn hóa frame vào canvas cố định và cache animation player trong RAM.
 - `src/scenes/`: các màn hình như menu và battle.
 - `src/entities/`: dữ liệu nhân vật, quái và boss.
 - `src/systems/`: combat, progression, inventory và equipment.
@@ -54,16 +55,18 @@ build/
 
 ## Sprite Sheet
 
-- `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột/hàng và hàm đọc danh sách frame rời.
+- `src/core/player_animation.py` là hệ thống chính cho player animation hiện tại.
+- Mỗi sprite sheet player là một hàng ngang; `frame_width = sheet_width / frame_count`, `frame_height = sheet_height`.
+- `PlayerAnimationSystem` load toàn bộ sprite sheet một lần khi scene khởi động, cắt frame một lần và lưu `pygame.Surface` trong RAM.
 - Animation idle của Neko dùng sprite sheet `res/images/characters/idle.png`.
 - Animation walk của Neko dùng sprite sheet `res/images/characters/walk.png`.
 - Animation jump của Neko dùng sprite sheet `res/images/characters/jump.png`.
 - Nhân vật `hero_01` dùng sprite sheet theo từng animation trong `res/images/characters/hero_01/`; các sheet này được convert từ GIF 60x60 để giữ canvas đồng bộ.
-- Sprite sheet được cắt theo `frame_count`, trim vùng trong suốt, scale theo `render_height`, rồi đặt vào canvas cố định bằng anchor `midbottom` để giữ vị trí ổn định giữa các animation.
+- Sprite sheet được cắt theo `frame_count`, trim vùng trong suốt, scale đều theo `render_height`, rồi đặt vào canvas cố định 256x256 bằng anchor `midbottom` để giữ vị trí ổn định giữa các animation.
 - `neko.render_height` trong `data/animations/characters.json` là kích thước render chung cho toàn bộ animation Neko; từng animation vẫn có thể dùng `target_height` riêng nếu cần ngoại lệ.
-- Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
-- Loader hỗ trợ `trim_alpha` trong JSON; animation Neko trim phần trong suốt rồi đặt lên canvas cố định để giữ khung render ổn định.
-- Loader hỗ trợ `scale_mode: "consistent"` để dùng cùng một tỉ lệ scale cho toàn bộ frame trong một animation; `jump` dùng chế độ này để tránh nhân vật bị to nhỏ giữa các frame.
+- Loader player hiện ưu tiên sprite sheet sạch một hàng ngang; nếu asset bị lẫn mảnh frame kế bên thì cần sửa/cắt lại asset trước khi đưa vào config.
+- Loader hỗ trợ `trim_alpha` trong JSON; animation player trim phần trong suốt rồi đặt lên canvas cố định để giữ khung render ổn định.
+- Player frame luôn giữ nền trong suốt, không scale méo nhân vật và không load lại ảnh trong game loop.
 
 ## Character Input State
 
@@ -72,9 +75,8 @@ build/
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
 - Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
-- `jump` tách pose khỏi physics: sprite sheet quyết định pose, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
-- Frame `jump` không loop bằng timer; `MenuScene` chọn frame theo tiến trình vật lý của cú nhảy để tránh nhảy từ frame cuối về frame đầu trước khi tiếp đất.
-- Với sprite sheet `jump.png` hiện tại, mỗi cell có motion offset lớn từ file vẽ gốc. Vì vậy `pose_mode: "velocity"` chỉ lấy các pose ổn định theo pha bay (`takeoff`, `rise`, `apex`, `fall`, `land`) để đường bay do physics quyết định, không bị double-motion từ ảnh.
+- `jump` tách animation khỏi physics: animation chỉ phát sprite sheet `jump`, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
+- Khi vẽ player, `MenuScene` dùng `image.get_rect(midbottom=(self.x, self.y))`; không dùng `topleft`.
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
 - Nếu `A` và `D` cùng được giữ, phím hướng được bấm gần nhất sẽ được ưu tiên để đổi hướng mượt hơn.
 - Biên trái/phải được tính theo nửa chiều rộng frame hiện tại, nên Neko có thể chạm sát mép client nhưng sprite không bị mất khỏi màn; đây là điểm chuẩn để sau này gắn trigger chuyển map.

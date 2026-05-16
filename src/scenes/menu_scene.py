@@ -6,7 +6,7 @@ from typing import Any
 import pygame
 
 from src.core.data_manager import DataManager
-from src.core.sprite_sheet import load_frame_sequence, load_sprite_sheet_frames
+from src.core.player_animation import DEFAULT_CANVAS_SIZE, PlayerAnimationSystem
 from src.core.settings import (
     ACCENT_COLOR,
     BACKGROUND_COLOR,
@@ -16,46 +16,29 @@ from src.core.settings import (
 from src.scenes.base_scene import BaseScene
 
 
-DEFAULT_NEKO_RENDER_HEIGHT = 160
-DEFAULT_NEKO_CANVAS_RATIO = 2
 DEFAULT_CHARACTER_ID = "neko"
-
-DEFAULT_NEKO_ANIMATIONS = {
+DEFAULT_RENDER_HEIGHT = 60
+DEFAULT_PLAYER_ANIMATIONS = {
     "idle": {
         "image": "res/images/characters/idle.png",
         "frame_count": 4,
-        "target_height": 160,
         "frame_duration": 0.22,
-        "trim_alpha": True,
+        "loop": True,
     },
     "walk": {
         "image": "res/images/characters/walk.png",
         "frame_count": 8,
-        "target_height": 160,
         "frame_duration": 0.12,
-        "trim_alpha": True,
-        "move_speed": 150,
+        "loop": True,
+        "move_speed": 400,
     },
     "jump": {
         "image": "res/images/characters/jump.png",
-        "frame_count": 12,
-        "target_height": 160,
-        "frame_duration": 0.06,
+        "frame_count": 6,
+        "frame_duration": 0.08,
         "loop": False,
-        "scale_mode": "consistent",
-        "trim_alpha": True,
         "gravity": 1800,
         "jump_force": -650,
-        "pose_mode": "velocity",
-        "pose_frames": {
-            "takeoff": 0,
-            "rise": 4,
-            "apex": 6,
-            "fall": 8,
-            "land": 10,
-        },
-        "landing_height": 24,
-        "apex_velocity": 140,
     },
 }
 
@@ -72,28 +55,22 @@ class MenuScene(BaseScene):
         )
         self.preview_character_ids = self._get_preview_character_ids()
         self.preview_character_index = 0
-        self.active_character_id = self.preview_character_ids[
-            self.preview_character_index
-        ]
-        self.map_background_surface: pygame.Surface | None = None
-        self.map_land_surface: pygame.Surface | None = None
-        self.neko_animation_configs = self._load_character_animation_configs(
+        self.active_character_id = self.preview_character_ids[0]
+        self.player_animation_configs = self._load_character_animation_configs(
             self.active_character_id
         )
-        self.neko_animation_name = "idle"
-        self.neko_frames: list[pygame.Surface] = []
-        self.current_frame_index = 0
-        self.animation_timer = 0.0
-        self.neko_x = self._get_spawn_x("player", WINDOW_WIDTH // 2)
-        self.ground_y = float(self._get_neko_ground_y())
-        self.neko_y = self.ground_y
-        self.neko_direction = 1
-        self.is_neko_jumping = False
+        self.player_animation = PlayerAnimationSystem(self.player_animation_configs)
+
+        self.map_background_surface: pygame.Surface | None = None
+        self.map_land_surface: pygame.Surface | None = None
+        self.x = float(self._get_spawn_x("player", WINDOW_WIDTH // 2))
+        self.ground_y = float(self._get_player_ground_y())
+        self.y = self.ground_y
+        self.direction = 1
         self.velocity_y = 0.0
-        self.jump_elapsed = 0.0
-        self.jump_duration = self._get_jump_duration(
-            self.neko_animation_configs["jump"]
-        )
+        self.gravity = self._get_jump_config_value("gravity", 1800)
+        self.jump_force = self._get_jump_config_value("jump_force", -650)
+        self.is_jumping = False
         self.held_keys: set[int] = set()
         self.last_horizontal_key: int | None = None
 
@@ -113,52 +90,26 @@ class MenuScene(BaseScene):
             self.last_horizontal_key = event.key
 
         if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
-            self._start_neko_jump()
+            self._start_player_jump()
 
         if event.key == pygame.K_TAB:
             self._switch_preview_character()
 
     def update(self, delta_time: float) -> None:
-        """Update menu animations."""
+        """Update player movement and animation."""
         self._update_horizontal_movement(delta_time)
 
-        if self.is_neko_jumping:
+        if self.is_jumping:
             self._update_jump_physics(delta_time)
-            if self.is_neko_jumping:
-                self._sync_neko_jump_frame()
-                return
         else:
             self._update_ground_animation()
 
-        self._update_neko_animation_frame(delta_time)
-
-    def _update_neko_animation_frame(self, delta_time: float) -> None:
-        """Advance the active Neko animation by time."""
-        if not self.neko_frames:
-            return
-
-        active_config = self._get_active_animation_config()
-        frame_duration = max(0.01, float(active_config.get("frame_duration", 0.16)))
-        should_loop = bool(active_config.get("loop", True))
-        self.animation_timer += delta_time
-
-        while self.animation_timer >= frame_duration:
-            self.animation_timer -= frame_duration
-            if should_loop:
-                self.current_frame_index = (self.current_frame_index + 1) % len(
-                    self.neko_frames
-                )
-            else:
-                self.current_frame_index = min(
-                    self.current_frame_index + 1,
-                    len(self.neko_frames) - 1,
-                )
+        self.player_animation.update(delta_time)
 
     def draw(self, surface: pygame.Surface) -> None:
         """Draw the main menu."""
-        self._ensure_neko_frames()
         self._draw_map(surface)
-        self._draw_neko(surface)
+        self._draw_player(surface)
 
     def _draw_map(self, surface: pygame.Surface) -> None:
         """Draw the current map background and land layers."""
@@ -172,11 +123,10 @@ class MenuScene(BaseScene):
             surface.blit(self.map_land_surface, (0, 0))
 
     def _ensure_map_surfaces(self) -> None:
-        """Load scaled map surfaces once after the display exists."""
+        """Load scaled map surfaces once."""
         if self.map_background_surface is None:
-            background_path = self.map_config.get("background")
             self.map_background_surface = self._load_map_surface(
-                background_path,
+                self.map_config.get("background"),
                 use_alpha=False,
                 smooth=True,
             )
@@ -207,7 +157,11 @@ class MenuScene(BaseScene):
             return None
 
         image = pygame.image.load(str(path))
-        surface = image.convert_alpha() if use_alpha else image.convert()
+        try:
+            surface = image.convert_alpha() if use_alpha else image.convert()
+        except pygame.error:
+            surface = image
+
         if surface.get_size() == (WINDOW_WIDTH, WINDOW_HEIGHT):
             return surface
 
@@ -216,86 +170,49 @@ class MenuScene(BaseScene):
 
         return pygame.transform.scale(surface, (WINDOW_WIDTH, WINDOW_HEIGHT))
 
-    def _ensure_neko_frames(self) -> None:
-        """Load Neko's active animation frames once."""
-        if self.neko_frames:
-            return
-
-        active_config = self._get_active_animation_config()
-        frame_paths = self._get_frame_paths(active_config)
-
-        if frame_paths:
-            self.neko_frames = load_frame_sequence(
-                image_paths=frame_paths,
-                target_height=int(active_config["target_height"]),
-                trim_alpha=bool(active_config.get("trim_alpha", True)),
-                canvas_size=self._get_canvas_size(active_config),
-                scale_mode=str(active_config.get("scale_mode", "per_frame")),
-            )
-            return
-
-        image_path = Path(str(active_config.get("image", "")))
-        if not image_path.exists():
-            return
-
-        self.neko_frames = load_sprite_sheet_frames(
-            image_path=image_path,
-            columns=int(active_config.get("columns", active_config["frame_count"])),
-            rows=int(active_config.get("rows", 1)),
-            frame_count=int(active_config["frame_count"]),
-            target_height=int(active_config["target_height"]),
-            trim_alpha=bool(active_config.get("trim_alpha", True)),
-            cell_crop=self._get_cell_crop(active_config),
-            canvas_size=self._get_canvas_size(active_config),
-            smooth=bool(active_config.get("smooth_scale", False)),
-            scale_mode=str(active_config.get("scale_mode", "per_frame")),
-        )
-
     def _load_character_animation_configs(
         self,
         character_id: str,
     ) -> dict[str, dict[str, Any]]:
         """Load one character's animation config from JSON."""
-        neko_data = self.character_animation_data.get(character_id, {})
-        if not isinstance(neko_data, dict):
-            neko_data = {}
+        character_data = self.character_animation_data.get(character_id, {})
+        if not isinstance(character_data, dict):
+            character_data = {}
 
-        neko_render_height = int(
-            neko_data.get("render_height", DEFAULT_NEKO_RENDER_HEIGHT)
-        )
-        default_canvas_size = self._get_default_canvas_size(
-            neko_data,
-            neko_render_height,
-        )
-
-        animation_configs: dict[str, dict[str, Any]] = {}
-        animation_names = set(DEFAULT_NEKO_ANIMATIONS)
-        for key, value in neko_data.items():
+        render_height = int(character_data.get("render_height", DEFAULT_RENDER_HEIGHT))
+        default_canvas = self._read_canvas_size(character_data)
+        animation_names = set(DEFAULT_PLAYER_ANIMATIONS)
+        for key, value in character_data.items():
             if isinstance(value, dict) and "image" in value:
                 animation_names.add(key)
 
+        animation_configs: dict[str, dict[str, Any]] = {}
         for animation_name in sorted(animation_names):
-            default_config = DEFAULT_NEKO_ANIMATIONS.get(animation_name, {})
-            custom_config = neko_data.get(animation_name, {})
+            default_config = DEFAULT_PLAYER_ANIMATIONS.get(animation_name, {})
+            custom_config = character_data.get(animation_name, {})
             if not isinstance(custom_config, dict):
                 custom_config = {}
-
             if not default_config and not custom_config:
                 continue
 
-            animation_configs[animation_name] = {
-                **default_config,
-                **custom_config,
-            }
-            if "target_height" not in custom_config:
-                animation_configs[animation_name]["target_height"] = neko_render_height
-            if "canvas_size" not in custom_config:
-                animation_configs[animation_name]["canvas_size"] = default_canvas_size
+            config = {**default_config, **custom_config}
+            config.setdefault("target_height", render_height)
+            config.setdefault("canvas_size", default_canvas)
+            config.setdefault("trim_alpha", True)
+            animation_configs[animation_name] = config
 
         return animation_configs
 
+    def _read_canvas_size(self, character_data: dict[str, Any]) -> list[int]:
+        """Return fixed player canvas size from character data."""
+        canvas_size = character_data.get("canvas_size")
+        if isinstance(canvas_size, list) and len(canvas_size) == 2:
+            return [int(canvas_size[0]), int(canvas_size[1])]
+
+        return [DEFAULT_CANVAS_SIZE[0], DEFAULT_CANVAS_SIZE[1]]
+
     def _get_preview_character_ids(self) -> list[str]:
-        """Return character IDs available for the preview scene."""
+        """Return character IDs available for preview."""
         configured_ids = self.map_config.get("preview_characters", [])
         if not isinstance(configured_ids, list) or not configured_ids:
             configured_ids = [self.map_config.get("player_character")]
@@ -317,77 +234,8 @@ class MenuScene(BaseScene):
         """Load the current map config from JSON."""
         return self.data_manager.load_json("maps/forest_path.json", default={})
 
-    def _get_active_animation_config(self) -> dict[str, Any]:
-        """Return config for the active Neko animation."""
-        if self.neko_animation_name not in self.neko_animation_configs:
-            self.neko_animation_name = "idle"
-
-        return self.neko_animation_configs[self.neko_animation_name]
-
-    def _get_cell_crop(
-        self,
-        animation_config: dict[str, Any],
-    ) -> tuple[int, int, int, int] | None:
-        """Return optional frame crop from config."""
-        crop = animation_config.get("cell_crop")
-        if not isinstance(crop, list) or len(crop) != 4:
-            return None
-
-        return tuple(int(value) for value in crop)
-
-    def _get_canvas_size(
-        self,
-        animation_config: dict[str, Any],
-    ) -> tuple[int, int] | None:
-        """Return optional fixed canvas size from config."""
-        canvas_size = animation_config.get("canvas_size")
-        if not isinstance(canvas_size, list) or len(canvas_size) != 2:
-            return None
-
-        return int(canvas_size[0]), int(canvas_size[1])
-
-    def _get_default_canvas_size(
-        self,
-        neko_data: dict[str, Any],
-        render_height: int,
-    ) -> list[int]:
-        """Return global Neko canvas size, scaled with render height."""
-        canvas_size = neko_data.get("canvas_size")
-        if isinstance(canvas_size, list) and len(canvas_size) == 2:
-            return [int(canvas_size[0]), int(canvas_size[1])]
-
-        canvas_length = render_height * DEFAULT_NEKO_CANVAS_RATIO
-        return [canvas_length, canvas_length]
-
-    def _get_frame_paths(self, animation_config: dict[str, Any]) -> list[Path]:
-        """Return separate frame image paths if configured."""
-        frame_files = animation_config.get("frame_files", [])
-        if not isinstance(frame_files, list):
-            return []
-
-        frame_paths = [Path(str(path)) for path in frame_files]
-        if not all(path.exists() for path in frame_paths):
-            return []
-
-        return frame_paths
-
-    def _set_neko_animation(self, animation_name: str) -> None:
-        """Switch Neko animation and reset frame playback."""
-        if animation_name not in self.neko_animation_configs:
-            animation_name = "idle"
-
-        if animation_name == self.neko_animation_name:
-            self._ensure_neko_frames()
-            return
-
-        self.neko_animation_name = animation_name
-        self.neko_frames = []
-        self.current_frame_index = 0
-        self.animation_timer = 0.0
-        self._ensure_neko_frames()
-
     def _switch_preview_character(self) -> None:
-        """Switch the preview character without changing map state."""
+        """Switch preview character and preload its animations."""
         if len(self.preview_character_ids) <= 1:
             return
 
@@ -397,20 +245,19 @@ class MenuScene(BaseScene):
         self.active_character_id = self.preview_character_ids[
             self.preview_character_index
         ]
-        self.neko_animation_configs = self._load_character_animation_configs(
+        self.player_animation_configs = self._load_character_animation_configs(
             self.active_character_id
         )
-        self.neko_animation_name = "idle"
-        self.neko_frames = []
-        self.current_frame_index = 0
-        self.animation_timer = 0.0
-        self.is_neko_jumping = False
+        self.player_animation = PlayerAnimationSystem(self.player_animation_configs)
         self.velocity_y = 0.0
-        self.jump_elapsed = 0.0
-        self.jump_duration = self._get_jump_duration(
-            self.neko_animation_configs.get("jump", {})
-        )
-        self._ensure_neko_frames()
+        self.gravity = self._get_jump_config_value("gravity", 1800)
+        self.jump_force = self._get_jump_config_value("jump_force", -650)
+        self.is_jumping = False
+        self.y = self.ground_y
+
+    def _get_jump_config_value(self, key: str, fallback: float) -> float:
+        """Return one numeric value from jump config."""
+        return float(self.player_animation_configs.get("jump", {}).get(key, fallback))
 
     def _get_pressed_move_direction(self) -> int:
         """Return the current horizontal input direction."""
@@ -430,24 +277,57 @@ class MenuScene(BaseScene):
 
         return None
 
-    def _get_neko_move_bounds(self) -> tuple[int, int]:
-        """Return the horizontal movement bounds for the menu preview."""
-        half_width = self._get_neko_half_width()
+    def _update_horizontal_movement(self, delta_time: float) -> None:
+        """Move player horizontally when A or D is held."""
+        move_direction = self._get_pressed_move_direction()
+        if move_direction == 0:
+            return
+
+        self.direction = move_direction
+        walk_config = self.player_animation.get_config("walk")
+        move_speed = float(walk_config.get("move_speed", 0))
+        if move_speed <= 0:
+            return
+
+        left_bound, right_bound = self._get_player_move_bounds()
+        self.x += move_speed * move_direction * delta_time
+        self.x = max(left_bound, min(right_bound, self.x))
+
+    def _update_ground_animation(self) -> None:
+        """Set idle or walk animation while player is grounded."""
+        if self._get_pressed_move_direction() == 0:
+            self.player_animation.set_animation("idle")
+            return
+
+        self.player_animation.set_animation("walk")
+
+    def _start_player_jump(self) -> None:
+        """Start jump physics and animation."""
+        if self.is_jumping:
+            return
+
+        self.is_jumping = True
+        self.velocity_y = self.jump_force
+        self.player_animation.set_animation("jump")
+
+    def _update_jump_physics(self, delta_time: float) -> None:
+        """Update vertical jump physics."""
+        self.velocity_y += self.gravity * delta_time
+        self.y += self.velocity_y * delta_time
+
+        if self.y >= self.ground_y:
+            self.y = self.ground_y
+            self.velocity_y = 0.0
+            self.is_jumping = False
+            self._update_ground_animation()
+
+    def _get_player_move_bounds(self) -> tuple[int, int]:
+        """Return horizontal movement bounds for the player."""
+        half_width = self.player_animation.get_current_half_width()
         return half_width, WINDOW_WIDTH - half_width
 
-    def _get_neko_half_width(self) -> int:
-        """Return half of Neko's current frame width for edge clamping."""
-        self._ensure_neko_frames()
-        if not self.neko_frames:
-            return 48
-
-        widest_frame = max(
-            frame.get_bounding_rect(min_alpha=1).width for frame in self.neko_frames
-        )
-        return max(1, widest_frame // 2)
-
-    def _get_neko_ground_y(self) -> int:
-        """Return Neko's current ground line."""
+    def _get_player_ground_y(self) -> int:
+        """Return player's current ground line."""
         land_config = self.map_config.get("land", {})
         if isinstance(land_config, dict) and "ground_y" in land_config:
             return round(float(land_config["ground_y"]) * self._get_map_scale_y())
@@ -484,134 +364,24 @@ class MenuScene(BaseScene):
 
         return float(WINDOW_WIDTH), float(WINDOW_HEIGHT)
 
+    def _draw_player(self, surface: pygame.Surface) -> None:
+        """Draw the animated player using a midbottom anchor."""
+        image = self.player_animation.get_current_frame()
+        if self.direction < 0:
+            image = pygame.transform.flip(image, True, False)
+
+        rect = image.get_rect(midbottom=(self.x, self.y))
+        surface.blit(image, rect)
+
+    # Compatibility helpers for quick local tests from earlier iterations.
+    def _set_neko_animation(self, animation_name: str) -> None:
+        """Switch player animation."""
+        self.player_animation.set_animation(animation_name)
+
     def _start_neko_jump(self) -> None:
-        """Start Neko's jump physics and animation."""
-        if self.is_neko_jumping:
-            return
-
-        jump_config = self.neko_animation_configs["jump"]
-        self.is_neko_jumping = True
-        self.jump_elapsed = 0.0
-        self.jump_duration = self._get_jump_duration(jump_config)
-        self.velocity_y = float(jump_config.get("jump_force", -650))
-        self._set_neko_animation("jump")
-        self.current_frame_index = 0
-
-    def _update_jump_physics(self, delta_time: float) -> None:
-        """Update Neko's vertical jump physics."""
-        jump_config = self.neko_animation_configs["jump"]
-        gravity = float(jump_config.get("gravity", 1800))
-
-        self.jump_elapsed += delta_time
-        self.velocity_y += gravity * delta_time
-        self.neko_y += self.velocity_y * delta_time
-
-        if self.neko_y >= self.ground_y:
-            self.neko_y = self.ground_y
-            self.velocity_y = 0.0
-            self.is_neko_jumping = False
-            self.jump_elapsed = 0.0
-            self._update_ground_animation()
-
-    def _sync_neko_jump_frame(self) -> None:
-        """Select jump frame from jump progress instead of looping by timer."""
-        if not self.neko_frames:
-            self._ensure_neko_frames()
-        if not self.neko_frames:
-            return
-
-        jump_config = self.neko_animation_configs["jump"]
-        if jump_config.get("pose_mode") == "velocity":
-            self.current_frame_index = self._get_velocity_jump_frame(jump_config)
-            return
-
-        jump_progress = min(1.0, self.jump_elapsed / max(0.01, self.jump_duration))
-        self.current_frame_index = min(
-            len(self.neko_frames) - 1,
-            int(jump_progress * len(self.neko_frames)),
-        )
-
-    def _get_velocity_jump_frame(self, jump_config: dict[str, Any]) -> int:
-        """Pick a stable jump pose from vertical velocity and height."""
-        pose_frames = jump_config.get("pose_frames", {})
-        if not isinstance(pose_frames, dict):
-            pose_frames = {}
-
-        air_height = max(0.0, self.ground_y - self.neko_y)
-        landing_height = float(jump_config.get("landing_height", 24))
-        apex_velocity = float(jump_config.get("apex_velocity", 140))
-
-        if air_height <= landing_height and self.velocity_y <= 0:
-            pose_name = "takeoff"
-        elif air_height <= landing_height and self.velocity_y > 0:
-            pose_name = "land"
-        elif self.velocity_y < -apex_velocity:
-            pose_name = "rise"
-        elif self.velocity_y > apex_velocity:
-            pose_name = "fall"
-        else:
-            pose_name = "apex"
-
-        fallback_frame = 0
-        frame_index = int(pose_frames.get(pose_name, fallback_frame))
-        return max(0, min(len(self.neko_frames) - 1, frame_index))
-
-    def _get_jump_duration(self, jump_config: dict[str, Any]) -> float:
-        """Estimate total airtime so jump frames can follow physics."""
-        if "animation_duration" in jump_config:
-            return max(0.01, float(jump_config["animation_duration"]))
-
-        gravity = float(jump_config.get("gravity", 1800))
-        jump_force = abs(float(jump_config.get("jump_force", -650)))
-        if gravity > 0 and jump_force > 0:
-            return (jump_force * 2) / gravity
-
-        frame_count = int(jump_config.get("frame_count", 1))
-        frame_duration = float(jump_config.get("frame_duration", 0.06))
-        return max(0.01, frame_count * frame_duration)
-
-    def _update_horizontal_movement(self, delta_time: float) -> None:
-        """Move Neko horizontally when the player holds A or D."""
-        move_direction = self._get_pressed_move_direction()
-
-        if move_direction == 0:
-            return
-
-        self.neko_direction = move_direction
-        walk_config = self.neko_animation_configs["walk"]
-        move_speed = float(walk_config.get("move_speed", 0))
-        if move_speed <= 0:
-            return
-
-        left_bound, right_bound = self._get_neko_move_bounds()
-        self.neko_x += move_speed * move_direction * delta_time
-        self.neko_x = max(left_bound, min(right_bound, self.neko_x))
-
-    def _update_ground_animation(self) -> None:
-        """Set idle or walk animation while Neko is on the ground."""
-        if self._get_pressed_move_direction() == 0:
-            self._set_neko_animation("idle")
-            return
-
-        self._set_neko_animation("walk")
-
-    def _draw_neko(self, surface: pygame.Surface) -> None:
-        """Draw the animated Neko preview."""
-        if not self.neko_frames:
-            fallback_rect = pygame.Rect(0, 0, 96, 128)
-            fallback_rect.midbottom = (round(self.neko_x), self._get_neko_draw_y())
-            pygame.draw.rect(surface, ACCENT_COLOR, fallback_rect, border_radius=6)
-            return
-
-        frame = self.neko_frames[self.current_frame_index]
-        if self.neko_direction < 0:
-            frame = pygame.transform.flip(frame, True, False)
-
-        frame_rect = frame.get_rect(
-            midbottom=(round(self.neko_x), self._get_neko_draw_y())
-        )
-        surface.blit(frame, frame_rect)
+        """Start player jump."""
+        self._start_player_jump()
 
     def _get_neko_draw_y(self) -> int:
-        """Return Neko's current draw baseline."""
-        return round(self.neko_y)
+        """Return player's current draw baseline."""
+        return round(self.y)

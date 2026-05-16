@@ -13,6 +13,8 @@
 - Đã xử lý lỗi animation Neko bị lệch to nhỏ dù sprite sheet khác kích thước: frame sau khi cắt được trim, scale theo `render_height`, rồi đặt vào canvas cố định.
 - Đã xử lý cảm giác `jump` bị giật/đơ: nguyên nhân là frame jump bị loop gần lúc tiếp đất và từng frame bị scale riêng theo chiều cao riêng; hiện jump sync theo physics và dùng scale đồng nhất cho cả animation.
 - Đã giảm tiếp cảm giác `jump` khựng: sprite sheet `jump.png` có motion offset lớn trong từng cell, nên hệ thống hiện chọn các pose ổn định theo vận tốc thay vì phát toàn bộ frame tuần tự.
+- Đã refactor lỗi lệch vị trí/sai frame khi đổi `idle`/`walk`/`jump`: thay loader rải rác trong `MenuScene` bằng `PlayerAnimationSystem`, cache toàn bộ frame một lần, đặt mọi frame player lên canvas 256x256 và vẽ bằng `image.get_rect(midbottom=(self.x, self.y))`.
+- Đã chuẩn hóa lại `jump.png` của Neko thành 6 frame ngang đúng với `frame_count = 6`, tránh cắt sai frame do sheet cũ có 12 frame nhưng config mới yêu cầu 6 frame.
 - Đã xử lý UI preview còn giống card/menu tạm: bỏ panel viền vàng và text, dùng full-window canvas để chuẩn bị dựng map.
 - Đã thêm map layer đầu tiên để thay nền màu phẳng: background và land được vẽ từ `forest_path.json`, land top dùng làm `ground_y` cho va chạm cơ bản.
 - Đã xử lý padding đáy của asset `hero_01`: animation được trim rồi đặt lại vào canvas cố định bằng `midbottom`, tránh nhân vật bị nổi trên mặt đất.

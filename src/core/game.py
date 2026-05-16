@@ -16,7 +16,7 @@ class Game:
     def __init__(self) -> None:
         self.screen: pygame.Surface | None = None
         self.clock: pygame.time.Clock | None = None
-        self.active_scene = MenuScene()
+        self.active_scene: MenuScene | None = None
         self.is_running = False
 
     def run(self, max_frames: int | None = None) -> None:
@@ -26,6 +26,7 @@ class Game:
 
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
+        self.active_scene = MenuScene()
         self.is_running = True
 
         frame_count = 0
@@ -33,7 +34,8 @@ class Game:
         while self.is_running:
             delta_time = self.clock.tick(FPS) / 1000
             self._handle_events()
-            self.active_scene.update(delta_time)
+            if self.active_scene is not None:
+                self.active_scene.update(delta_time)
             self._draw()
 
             frame_count += 1
@@ -49,11 +51,12 @@ class Game:
                 self.is_running = False
                 return
 
-            self.active_scene.handle_event(event)
+            if self.active_scene is not None:
+                self.active_scene.handle_event(event)
 
     def _draw(self) -> None:
         """Draw the active scene."""
-        if self.screen is None:
+        if self.screen is None or self.active_scene is None:
             return
 
         self.active_scene.draw(self.screen)

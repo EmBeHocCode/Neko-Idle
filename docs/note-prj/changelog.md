@@ -2,6 +2,9 @@
 
 ## 2026-05-17
 
+- Refactor hệ thống player animation sang `src/core/player_animation.py`: load/cắt/cache toàn bộ sprite sheet một lần, chuẩn hóa frame vào canvas 256x256 và vẽ bằng anchor `midbottom`.
+- Chuẩn hóa config Neko: `idle` 4 frame, `walk` 8 frame, `jump` 6 frame; `jump.png` được rút lại thành 6 frame ngang đúng cấu hình.
+- Giữ jump physics riêng trong scene với `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y`.
 - Thêm nhân vật thử nghiệm `hero_01` từ bộ asset `Full Version`: convert GIF animation 60x60 thành sprite sheet PNG trong `res/images/characters/hero_01/`.
 - Cấu hình `hero_01` trong `data/animations/characters.json` với các animation: idle, walk, run, jump, attack, dash, hurt, death, climb, crouch, crouching_walk, hi, slide, slide_forward và spin.
 - Cập nhật `MenuScene` để hỗ trợ nhiều character config và bấm `Tab` đổi preview giữa `neko` và `hero_01`.
