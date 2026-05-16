@@ -22,7 +22,17 @@
       "scale_mode": "consistent",
       "trim_alpha": true,
       "gravity": 1800,
-      "jump_force": -650
+      "jump_force": -650,
+      "pose_mode": "velocity",
+      "pose_frames": {
+        "takeoff": 0,
+        "rise": 4,
+        "apex": 6,
+        "fall": 8,
+        "land": 10
+      },
+      "landing_height": 24,
+      "apex_velocity": 140
     }
   }
 }

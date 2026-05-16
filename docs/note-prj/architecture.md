@@ -70,6 +70,7 @@ build/
 - Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
 - `jump` tách pose khỏi physics: sprite sheet quyết định pose, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
 - Frame `jump` không loop bằng timer; `MenuScene` chọn frame theo tiến trình vật lý của cú nhảy để tránh nhảy từ frame cuối về frame đầu trước khi tiếp đất.
+- Với sprite sheet `jump.png` hiện tại, mỗi cell có motion offset lớn từ file vẽ gốc. Vì vậy `pose_mode: "velocity"` chỉ lấy các pose ổn định theo pha bay (`takeoff`, `rise`, `apex`, `fall`, `land`) để đường bay do physics quyết định, không bị double-motion từ ảnh.
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
 - Nếu `A` và `D` cùng được giữ, phím hướng được bấm gần nhất sẽ được ưu tiên để đổi hướng mượt hơn.
 - Biên trái/phải được tính theo nửa chiều rộng frame hiện tại, nên Neko có thể chạm sát mép client nhưng sprite không bị mất khỏi màn; đây là điểm chuẩn để sau này gắn trigger chuyển map.

@@ -4,6 +4,7 @@
 
 - Làm mượt animation `jump`: frame jump không còn loop bằng timer trong lúc đang bay, mà được chọn theo tiến trình vật lý của cú nhảy.
 - Thêm `scale_mode: "consistent"` cho sprite sheet để giữ cùng một tỉ lệ scale trong toàn bộ animation, tránh frame jump bị phóng to/thu nhỏ gây cảm giác giật.
+- Đổi `jump` sang `pose_mode: "velocity"`: sprite chỉ đổi các pose ổn định theo pha bay (`takeoff`, `rise`, `apex`, `fall`, `land`) thay vì chạy toàn bộ 12 frame có motion offset sẵn trong ảnh.
 
 ## 2026-05-16
 

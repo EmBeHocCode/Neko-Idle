@@ -45,6 +45,16 @@ DEFAULT_NEKO_ANIMATIONS = {
         "trim_alpha": True,
         "gravity": 1800,
         "jump_force": -650,
+        "pose_mode": "velocity",
+        "pose_frames": {
+            "takeoff": 0,
+            "rise": 4,
+            "apex": 6,
+            "fall": 8,
+            "land": 10,
+        },
+        "landing_height": 24,
+        "apex_velocity": 140,
     },
 }
 
@@ -333,11 +343,41 @@ class MenuScene(BaseScene):
         if not self.neko_frames:
             return
 
+        jump_config = self.neko_animation_configs["jump"]
+        if jump_config.get("pose_mode") == "velocity":
+            self.current_frame_index = self._get_velocity_jump_frame(jump_config)
+            return
+
         jump_progress = min(1.0, self.jump_elapsed / max(0.01, self.jump_duration))
         self.current_frame_index = min(
             len(self.neko_frames) - 1,
             int(jump_progress * len(self.neko_frames)),
         )
+
+    def _get_velocity_jump_frame(self, jump_config: dict[str, Any]) -> int:
+        """Pick a stable jump pose from vertical velocity and height."""
+        pose_frames = jump_config.get("pose_frames", {})
+        if not isinstance(pose_frames, dict):
+            pose_frames = {}
+
+        air_height = max(0.0, self.ground_y - self.neko_y)
+        landing_height = float(jump_config.get("landing_height", 24))
+        apex_velocity = float(jump_config.get("apex_velocity", 140))
+
+        if air_height <= landing_height and self.velocity_y <= 0:
+            pose_name = "takeoff"
+        elif air_height <= landing_height and self.velocity_y > 0:
+            pose_name = "land"
+        elif self.velocity_y < -apex_velocity:
+            pose_name = "rise"
+        elif self.velocity_y > apex_velocity:
+            pose_name = "fall"
+        else:
+            pose_name = "apex"
+
+        fallback_frame = 0
+        frame_index = int(pose_frames.get(pose_name, fallback_frame))
+        return max(0, min(len(self.neko_frames) - 1, frame_index))
 
     def _get_jump_duration(self, jump_config: dict[str, Any]) -> float:
         """Estimate total airtime so jump frames can follow physics."""
