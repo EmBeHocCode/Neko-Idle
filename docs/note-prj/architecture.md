@@ -42,12 +42,14 @@ build/
 - `src/utils/`: helper và logger dùng chung.
 - `data/`: dữ liệu JSON có thể chỉnh để cân bằng game.
 - `res/`: hình ảnh, âm thanh và font.
+- `res/images/maps/forest_background.png`: nền 1920x1080 của map `forest_path`.
+- `res/images/maps/forest_land.png`: layer đất 1920x1080 trong suốt, được ghép từ các tile đất 120x120.
 
 ## Pygame Loop
 
 - `Game` trong `src/core/game.py` chịu trách nhiệm khởi tạo Pygame, tạo cửa sổ, quản lý clock/FPS và gọi scene hiện tại.
 - `MenuScene` là scene đầu tiên, render màn hình khởi động MVP-1.
-- `MenuScene` hiện là full-window preview scene: không còn panel/card hoặc text tạm, chỉ vẽ nền toàn màn và Neko.
+- `MenuScene` hiện là full-window preview scene: vẽ map background, land và Neko theo dữ liệu `data/maps/forest_path.json`.
 - `Game.run(max_frames=...)` hỗ trợ test headless để kiểm tra loop mà không cần mở cửa sổ lâu.
 
 ## Sprite Sheet
@@ -80,6 +82,7 @@ build/
 - `data/animations/characters.json`: cấu hình frame rời hoặc spritesheet, tốc độ frame và crop.
 - Animation character hiện ưu tiên sprite sheet qua `image` và `frame_count`; danh sách frame rời chỉ còn là fallback kỹ thuật.
 - `data/maps/forest_path.json`: dữ liệu map mẫu, spawn point, object và NPC.
+- `forest_path.json` hiện có `source_size`, `background`, `land.image`, `land.ground_y` và `land.collision_rects`; `ground_y` được scale về kích thước cửa sổ để làm baseline đứng/nhảy của Neko.
 - `data/config/game_config.json`: cấu hình game tổng quát để mở rộng sau.
 - Cấu trúc này tham khảo ý tưởng `GameDataManager` và `res/data/` từ `E:\FULLSOURCEAVATAR\`, nhưng triển khai bằng Python/JSON.
 

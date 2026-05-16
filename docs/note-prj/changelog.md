@@ -2,6 +2,9 @@
 
 ## 2026-05-17
 
+- Thêm nền map đầu tiên cho `forest_path`: `forest_background.png` 1920x1080 và `forest_land.png` 1920x1080 trong `res/images/maps/`.
+- Ghép `forest_land.png` từ các tile đất `1.png`, `2.png`, `3.png`, `4.png`; land nằm ở đáy ảnh và dùng `ground_y` trong JSON để làm baseline va chạm.
+- Cập nhật `MenuScene` để vẽ background + land từ `data/maps/forest_path.json` trước khi vẽ Neko.
 - Làm mượt animation `jump`: frame jump không còn loop bằng timer trong lúc đang bay, mà được chọn theo tiến trình vật lý của cú nhảy.
 - Thêm `scale_mode: "consistent"` cho sprite sheet để giữ cùng một tỉ lệ scale trong toàn bộ animation, tránh frame jump bị phóng to/thu nhỏ gây cảm giác giật.
 - Đổi `jump` sang `pose_mode: "velocity"`: sprite chỉ đổi các pose ổn định theo pha bay (`takeoff`, `rise`, `apex`, `fall`, `land`) thay vì chạy toàn bộ 12 frame có motion offset sẵn trong ảnh.

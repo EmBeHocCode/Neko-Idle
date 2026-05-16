@@ -64,12 +64,15 @@ class MenuScene(BaseScene):
 
     def __init__(self) -> None:
         self.data_manager = DataManager()
+        self.map_config = self._load_map_config()
+        self.map_background_surface: pygame.Surface | None = None
+        self.map_land_surface: pygame.Surface | None = None
         self.neko_animation_configs = self._load_neko_animation_configs()
         self.neko_animation_name = "idle"
         self.neko_frames: list[pygame.Surface] = []
         self.current_frame_index = 0
         self.animation_timer = 0.0
-        self.neko_x = WINDOW_WIDTH // 2
+        self.neko_x = self._get_spawn_x("player", WINDOW_WIDTH // 2)
         self.ground_y = float(self._get_neko_ground_y())
         self.neko_y = self.ground_y
         self.neko_direction = 1
@@ -139,8 +142,64 @@ class MenuScene(BaseScene):
     def draw(self, surface: pygame.Surface) -> None:
         """Draw the main menu."""
         self._ensure_neko_frames()
-        surface.fill(BACKGROUND_COLOR)
+        self._draw_map(surface)
         self._draw_neko(surface)
+
+    def _draw_map(self, surface: pygame.Surface) -> None:
+        """Draw the current map background and land layers."""
+        self._ensure_map_surfaces()
+        if self.map_background_surface is None:
+            surface.fill(BACKGROUND_COLOR)
+        else:
+            surface.blit(self.map_background_surface, (0, 0))
+
+        if self.map_land_surface is not None:
+            surface.blit(self.map_land_surface, (0, 0))
+
+    def _ensure_map_surfaces(self) -> None:
+        """Load scaled map surfaces once after the display exists."""
+        if self.map_background_surface is None:
+            background_path = self.map_config.get("background")
+            self.map_background_surface = self._load_map_surface(
+                background_path,
+                use_alpha=False,
+                smooth=True,
+            )
+
+        if self.map_land_surface is None:
+            land_config = self.map_config.get("land", {})
+            land_path = (
+                land_config.get("image") if isinstance(land_config, dict) else None
+            )
+            self.map_land_surface = self._load_map_surface(
+                land_path,
+                use_alpha=True,
+                smooth=False,
+            )
+
+    def _load_map_surface(
+        self,
+        image_path: object,
+        use_alpha: bool,
+        smooth: bool,
+    ) -> pygame.Surface | None:
+        """Load and scale one map layer to the game window."""
+        if not image_path:
+            return None
+
+        path = Path(str(image_path))
+        if not path.exists():
+            return None
+
+        image = pygame.image.load(str(path))
+        surface = image.convert_alpha() if use_alpha else image.convert()
+        if surface.get_size() == (WINDOW_WIDTH, WINDOW_HEIGHT):
+            return surface
+
+        if smooth:
+            return pygame.transform.smoothscale(surface, (WINDOW_WIDTH, WINDOW_HEIGHT))
+
+        return pygame.transform.scale(surface, (WINDOW_WIDTH, WINDOW_HEIGHT))
 
     def _ensure_neko_frames(self) -> None:
         """Load Neko's active animation frames once."""
@@ -205,6 +264,10 @@ class MenuScene(BaseScene):
                 animation_configs[animation_name]["canvas_size"] = default_canvas_size
 
         return animation_configs
+
+    def _load_map_config(self) -> dict[str, Any]:
+        """Load the current map config from JSON."""
+        return self.data_manager.load_json("maps/forest_path.json", default={})
 
     def _get_active_animation_config(self) -> dict[str, Any]:
         """Return config for the active Neko animation."""
@@ -305,7 +368,41 @@ class MenuScene(BaseScene):
 
     def _get_neko_ground_y(self) -> int:
         """Return Neko's current ground line."""
+        land_config = self.map_config.get("land", {})
+        if isinstance(land_config, dict) and "ground_y" in land_config:
+            return round(float(land_config["ground_y"]) * self._get_map_scale_y())
+
         return WINDOW_HEIGHT - 72
+
+    def _get_spawn_x(self, spawn_name: str, fallback: int) -> int:
+        """Return a spawn X coordinate scaled from map data."""
+        spawn_points = self.map_config.get("spawn_points", {})
+        if not isinstance(spawn_points, dict):
+            return fallback
+
+        spawn_point = spawn_points.get(spawn_name)
+        if not isinstance(spawn_point, list) or len(spawn_point) < 1:
+            return fallback
+
+        return round(float(spawn_point[0]) * self._get_map_scale_x())
+
+    def _get_map_scale_x(self) -> float:
+        """Return the source-to-window X scale."""
+        source_width, _ = self._get_map_source_size()
+        return WINDOW_WIDTH / source_width
+
+    def _get_map_scale_y(self) -> float:
+        """Return the source-to-window Y scale."""
+        _, source_height = self._get_map_source_size()
+        return WINDOW_HEIGHT / source_height
+
+    def _get_map_source_size(self) -> tuple[float, float]:
+        """Return source map size from config."""
+        source_size = self.map_config.get("source_size", [])
+        if isinstance(source_size, list) and len(source_size) == 2:
+            return max(1.0, float(source_size[0])), max(1.0, float(source_size[1]))
+
+        return float(WINDOW_WIDTH), float(WINDOW_HEIGHT)
 
     def _start_neko_jump(self) -> None:
         """Start Neko's jump physics and animation."""

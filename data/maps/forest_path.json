@@ -1,10 +1,16 @@
 {
   "id": "forest_path",
   "name": "Forest Path",
-  "background": null,
+  "source_size": [1920, 1080],
+  "background": "res/images/maps/forest_background.png",
+  "land": {
+    "image": "res/images/maps/forest_land.png",
+    "ground_y": 960,
+    "collision_rects": [[0, 960, 1920, 120]]
+  },
   "spawn_points": {
-    "player": [260, 380],
-    "enemy": [690, 380]
+    "player": [320, 960],
+    "enemy": [1480, 960]
   },
   "objects": [],
   "npcs": []

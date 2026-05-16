@@ -25,6 +25,8 @@
 - Menu preview hiện dùng toàn bộ cửa sổ game, không còn panel viền vàng hoặc chữ tạm.
 - Neko hiện có thể đi tới sát hai mép client nhưng vẫn được giữ trong màn để quay lại.
 - Đã có `DataManager` để nạp JSON trung tâm.
+- Map preview đầu tiên đã có nền `forest_background.png` và land `forest_land.png` trong `res/images/maps/`.
+- `MenuScene` hiện đọc `data/maps/forest_path.json` để vẽ background/land và lấy `ground_y` từ top land làm baseline va chạm cho Neko.
 - Gameplay chính chưa được triển khai.
 
 ## Việc Cần Ưu Tiên Tiếp Theo

@@ -14,6 +14,7 @@
 - Đã xử lý cảm giác `jump` bị giật/đơ: nguyên nhân là frame jump bị loop gần lúc tiếp đất và từng frame bị scale riêng theo chiều cao riêng; hiện jump sync theo physics và dùng scale đồng nhất cho cả animation.
 - Đã giảm tiếp cảm giác `jump` khựng: sprite sheet `jump.png` có motion offset lớn trong từng cell, nên hệ thống hiện chọn các pose ổn định theo vận tốc thay vì phát toàn bộ frame tuần tự.
 - Đã xử lý UI preview còn giống card/menu tạm: bỏ panel viền vàng và text, dùng full-window canvas để chuẩn bị dựng map.
+- Đã thêm map layer đầu tiên để thay nền màu phẳng: background và land được vẽ từ `forest_path.json`, land top dùng làm `ground_y` cho va chạm cơ bản.
 - Đã xử lý giới hạn di chuyển còn cách mép quá xa: bỏ biên cố định 80px và clamp theo kích thước frame để Neko sát mép nhưng không biến mất.
 - Đã xử lý nguy cơ lệch vị trí khi đổi sprite sheet kích thước khác nhau bằng canvas cố định và anchor `midbottom`.
 - Đã xử lý lỗi bấm `Space` chỉ đổi frame jump tại chỗ: thay bằng physics thật với `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y`; nhân vật tiếp đất về đúng baseline.
