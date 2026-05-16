@@ -15,7 +15,7 @@ Dự án hướng tới kiến trúc đơn giản, dễ đọc, dễ mở rộng
 ## Cấu Trúc Hiện Tại
 
 ```text
-assets/
+res/
 data/
 docs/
 docs/note-prj/
@@ -41,7 +41,7 @@ build/
 - `src/ui/`: các thành phần giao diện như HP bar, EXP bar, button.
 - `src/utils/`: helper và logger dùng chung.
 - `data/`: dữ liệu JSON có thể chỉnh để cân bằng game.
-- `assets/`: hình ảnh, âm thanh và font.
+- `res/`: hình ảnh, âm thanh và font.
 
 ## Pygame Loop
 
@@ -53,30 +53,28 @@ build/
 ## Sprite Sheet
 
 - `src/core/sprite_sheet.py` cung cấp hàm cắt spritesheet theo số cột/hàng và hàm đọc danh sách frame rời.
-- Animation idle của Neko dùng 3 frame rời: `idle_1.png`, `idle_2.png`, `idle_3.png`.
-- Animation walk của Neko dùng 5 frame rời: `walk_1.png` đến `walk_5.png`.
-- Animation dash của Neko dùng 3 frame rời: `dash_1.png` đến `dash_3.png`.
-- Frame được scale theo chiều cao canvas cố định để giữ kích thước ổn định giữa các frame.
+- Animation idle của Neko dùng sprite sheet `res/images/characters/idle.png`.
+- Animation walk của Neko dùng sprite sheet `res/images/characters/walk.png`.
+- Animation jump của Neko dùng sprite sheet `res/images/characters/jump.png`.
+- Sprite sheet được cắt theo `frame_count`, trim vùng trong suốt, scale theo `render_height`, rồi đặt vào canvas cố định bằng anchor `midbottom` để giữ vị trí ổn định giữa các animation.
 - `neko.render_height` trong `data/animations/characters.json` là kích thước render chung cho toàn bộ animation Neko; từng animation vẫn có thể dùng `target_height` riêng nếu cần ngoại lệ.
 - Loader hỗ trợ `cell_crop` để cắt bỏ vùng dư trong từng ô spritesheet khi ảnh AI có mảnh lạc từ frame kế bên.
-- Loader hỗ trợ `trim_alpha` trong JSON; animation Neko đặt `trim_alpha: false` để giữ khung canvas ổn định và tránh giật kích thước giữa các frame.
+- Loader hỗ trợ `trim_alpha` trong JSON; animation Neko trim phần trong suốt rồi đặt lên canvas cố định để giữ khung render ổn định.
 
 ## Character Input State
 
 - `MenuScene` chọn animation Neko theo trạng thái input thay vì tự chạy preview.
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
-- Bấm `Shift` thì Neko bắt đầu một lượt `dash`, dùng hướng đang giữ bằng `A`/`D`; nếu không giữ hướng thì dash theo hướng đang quay mặt.
-- Trong lúc dash, input đi bộ tạm thời không điều khiển vị trí; Neko nội suy từ vị trí bắt đầu đến vị trí đích theo `distance` và `duration` trong `data/animations/characters.json`.
+- Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
 - Nếu `A` và `D` cùng được giữ, phím hướng được bấm gần nhất sẽ được ưu tiên để đổi hướng mượt hơn.
-- Nếu dash bị chặn bởi rìa và vị trí đích trùng vị trí hiện tại, scene bỏ lượt dash đó để không khóa điều khiển.
 - Biên trái/phải được tính theo nửa chiều rộng frame hiện tại, nên Neko có thể chạm sát mép client nhưng sprite không bị mất khỏi màn; đây là điểm chuẩn để sau này gắn trigger chuyển map.
 
 ## Data-Driven Structure
 
 - `data/animations/characters.json`: cấu hình frame rời hoặc spritesheet, tốc độ frame và crop.
-- Animation character hỗ trợ cả spritesheet và danh sách frame rời qua `frame_files`.
+- Animation character hiện ưu tiên sprite sheet qua `image` và `frame_count`; danh sách frame rời chỉ còn là fallback kỹ thuật.
 - `data/maps/forest_path.json`: dữ liệu map mẫu, spawn point, object và NPC.
 - `data/config/game_config.json`: cấu hình game tổng quát để mở rộng sau.
 - Cấu trúc này tham khảo ý tưởng `GameDataManager` và `res/data/` từ `E:\FULLSOURCEAVATAR\`, nhưng triển khai bằng Python/JSON.

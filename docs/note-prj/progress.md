@@ -10,14 +10,12 @@
 - Cấu trúc thư mục chính đã được dựng.
 - Khung source tối thiểu đã chạy được bằng `python main.py`.
 - MVP-1 đã có cửa sổ Pygame, game loop và menu scene đầu tiên.
-- Ảnh spritesheet cũ `assets/images/characters/neko-idle.png` đã được thay bằng frame rời.
+- Thư mục tài nguyên chính hiện chuyển từ `assets/` sang `res/`.
 - Animation idle của Neko đã đọc cấu hình từ `data/animations/characters.json`.
-- Animation idle hiện dùng 3 frame rời trong `assets/images/characters/`.
-- Animation walk hiện dùng 5 frame rời trong `assets/images/characters/`.
-- Animation dash hiện dùng 3 frame rời trong `assets/images/characters/`.
-- Menu preview hiện đã có trạng thái `idle`, di chuyển bằng `A`/`D`, và bấm `Shift` để dash một đoạn cố định.
-- Kích thước render của idle/walk/dash đã được chuẩn hóa theo canvas để giảm lệch hình giữa các frame.
-- Tốc độ đi bộ thử nghiệm của Neko hiện là 300 px/s.
+- Animation idle/walk/jump hiện dùng sprite sheet riêng trong `res/images/characters/`.
+- Menu preview hiện đã có trạng thái `idle`, di chuyển bằng `A`/`D`, và bấm `Space`/`W`/`Up` để phát animation `jump`.
+- Kích thước render của idle/walk/jump đã được chuẩn hóa bằng canvas cố định để giảm lệch hình giữa các animation.
+- Tốc độ đi bộ thử nghiệm của Neko hiện là 400 px/s.
 - Kích thước tổng thể của Neko hiện chỉnh bằng `neko.render_height` trong `data/animations/characters.json`.
 - Menu preview hiện dùng toàn bộ cửa sổ game, không còn panel viền vàng hoặc chữ tạm.
 - Neko hiện có thể đi tới sát hai mép client nhưng vẫn được giữ trong màn để quay lại.

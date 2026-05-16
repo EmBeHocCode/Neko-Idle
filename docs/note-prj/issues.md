@@ -8,11 +8,12 @@
 - Đã xử lý lỗi spritesheet Neko: frame 2 và 5 có mảnh nhỏ từ frame kế bên, cần crop vùng đọc trong mỗi cell.
 - Source tham khảo `E:\FULLSOURCEAVATAR\` là Java/Maven/server-side, không phù hợp để trộn trực tiếp vào Neko Python/Pygame.
 - Đã xử lý lỗi menu preview khiến Neko tự đi liên tục: chuyển sang trạng thái `idle` mặc định và chỉ di chuyển khi giữ `A` hoặc `D`.
-- Đã xử lý sai thiết kế dash: cơ chế cũ là giữ `Shift` để chạy nhanh, cơ chế mới là bấm `Shift` một lần để lao một đoạn cố định.
-- Đã xử lý lỗi chạm rìa khiến điều khiển bị kẹt: dash hướng ra ngoài rìa không còn tạo trạng thái dash 0px, input di chuyển không phụ thuộc trực tiếp vào `pygame.key.get_pressed()`, và phím hướng mới nhất được ưu tiên khi `A`/`D` cùng được giữ.
-- Đã xử lý lỗi animation Neko bị lệch to nhỏ dù ảnh cùng canvas: nguyên nhân là loader trim vùng trong suốt rồi scale theo bounding box từng frame; cấu hình mới tắt `trim_alpha` và dùng cùng `target_height` cho idle/walk/dash.
+- Animation `dash` đã được loại khỏi giai đoạn hiện tại; hệ thống đang dùng `jump` thay thế.
+- Đã xử lý lỗi chạm rìa khiến điều khiển bị kẹt: input di chuyển không phụ thuộc trực tiếp vào `pygame.key.get_pressed()`, và phím hướng mới nhất được ưu tiên khi `A`/`D` cùng được giữ.
+- Đã xử lý lỗi animation Neko bị lệch to nhỏ dù sprite sheet khác kích thước: frame sau khi cắt được trim, scale theo `render_height`, rồi đặt vào canvas cố định.
 - Đã xử lý UI preview còn giống card/menu tạm: bỏ panel viền vàng và text, dùng full-window canvas để chuẩn bị dựng map.
 - Đã xử lý giới hạn di chuyển còn cách mép quá xa: bỏ biên cố định 80px và clamp theo kích thước frame để Neko sát mép nhưng không biến mất.
+- Đã xử lý nguy cơ lệch vị trí khi đổi sprite sheet kích thước khác nhau bằng canvas cố định và anchor `midbottom`.
 
 ## Ghi Chú Quy Trình
 

@@ -2,15 +2,19 @@
 
 ## 2026-05-16
 
+- Chuyển hệ thống asset nhân vật từ `assets/` sang `res/`.
+- Cập nhật animation Neko từ frame PNG rời sang sprite sheet theo từng animation: `idle.png`, `walk.png`, `jump.png`.
+- Bỏ animation `dash` trong giai đoạn hiện tại và thay bằng `jump`; phím nhảy dùng `Space`, `W` hoặc `Up`.
+- Sprite sheet được cắt theo `frame_count` trong `data/animations/characters.json`, sau đó trim và đặt vào canvas cố định để không lệch vị trí khi đổi animation.
 - Chuyển menu preview của Neko từ tự động đi qua lại sang điều khiển bằng input.
 - Trạng thái mặc định của Neko là `idle`; giữ `A` hoặc `D` để di chuyển và phát animation `walk`.
 - Thêm animation dash 3 frame cho Neko: `dash_1.png` đến `dash_3.png`; giữ `Shift` khi di chuyển sẽ phát animation `dash`.
 - Đổi cơ chế dash từ tăng tốc khi giữ `Shift` sang bấm `Shift` một lần để lao một đoạn cố định, cấu hình bằng `distance` và `duration`.
 - Sửa lỗi điều khiển ở rìa màn hình: input `A`/`D` được lưu bằng sự kiện `KEYDOWN`/`KEYUP`, và dash 0px khi đâm vào rìa sẽ không khóa trạng thái nhân vật.
-- Chuẩn hóa kích thước animation Neko: idle, walk và dash đều render theo canvas height 160 và tắt `trim_alpha` để tránh lệch to nhỏ giữa các frame.
+- Chuẩn hóa kích thước animation Neko: idle, walk và jump đều render qua canvas cố định để tránh lệch to nhỏ giữa các frame.
 - Tăng tốc độ đi bộ của Neko từ 90 lên 150 px/s để cảm giác điều khiển nhanh hơn.
-- Thêm `render_height` chung cho Neko trong `data/animations/characters.json`; chỉ cần sửa một giá trị để đổi kích thước toàn bộ idle/walk/dash.
-- Ghi nhận cấu hình thử nghiệm hiện tại: `walk.move_speed` của Neko là 300 px/s.
+- Thêm `render_height` chung cho Neko trong `data/animations/characters.json`; chỉ cần sửa một giá trị để đổi kích thước toàn bộ idle/walk/jump.
+- Ghi nhận cấu hình thử nghiệm hiện tại: `walk.move_speed` của Neko là 400 px/s.
 - Chuyển menu preview sang bố cục full-window: bỏ panel viền vàng và toàn bộ text tạm, chỉ giữ nền và Neko để chuẩn bị thay bằng map/gameplay scene.
 - Mở rộng giới hạn di chuyển tới sát mép client: Neko được clamp theo nửa frame hiện tại thay vì khoảng cách cố định 80px.
 

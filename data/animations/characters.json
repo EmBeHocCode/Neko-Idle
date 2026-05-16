@@ -1,37 +1,25 @@
 {
   "neko": {
-    "render_height": 120,
+    "render_height": 60,
     "idle": {
-      "frame_files": [
-        "assets/images/characters/idle_1.png",
-        "assets/images/characters/idle_2.png",
-        "assets/images/characters/idle_3.png"
-      ],
+      "image": "res/images/characters/idle.png",
+      "frame_count": 4,
       "frame_duration": 0.22,
-      "trim_alpha": false
+      "trim_alpha": true
     },
     "walk": {
-      "frame_files": [
-        "assets/images/characters/walk_1.png",
-        "assets/images/characters/walk_2.png",
-        "assets/images/characters/walk_3.png",
-        "assets/images/characters/walk_4.png",
-        "assets/images/characters/walk_5.png"
-      ],
+      "image": "res/images/characters/walk.png",
+      "frame_count": 8,
       "frame_duration": 0.12,
-      "trim_alpha": false,
-      "move_speed": 300
+      "trim_alpha": true,
+      "move_speed": 400
     },
-    "dash": {
-      "frame_files": [
-        "assets/images/characters/dash_1.png",
-        "assets/images/characters/dash_2.png",
-        "assets/images/characters/dash_3.png"
-      ],
-      "frame_duration": 0.08,
-      "trim_alpha": false,
-      "distance": 260,
-      "duration": 0.22
+    "jump": {
+      "image": "res/images/characters/jump.png",
+      "frame_count": 12,
+      "frame_duration": 0.06,
+      "trim_alpha": true,
+      "duration": 0.72
     }
   }
 }

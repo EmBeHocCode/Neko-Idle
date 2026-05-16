@@ -58,7 +58,7 @@ Neko-Idle/
 ├── README.md
 ├── requirements.txt
 ├── main.py
-├── assets/
+├── res/
 │   ├── images/
 │   │   ├── characters/
 │   │   ├── enemies/

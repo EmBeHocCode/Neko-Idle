@@ -7,15 +7,23 @@ import pygame
 
 def load_sprite_sheet_frames(
     image_path: str | Path,
-    columns: int,
-    rows: int,
+    columns: int | None = None,
+    rows: int = 1,
+    frame_count: int | None = None,
     target_height: int | None = None,
     trim_alpha: bool = True,
     cell_crop: tuple[int, int, int, int] | None = None,
+    canvas_size: tuple[int, int] | None = None,
+    smooth: bool = False,
 ) -> list[pygame.Surface]:
     """Load a sprite sheet and split it into frames."""
     sheet = pygame.image.load(str(image_path)).convert_alpha()
     sheet_width, sheet_height = sheet.get_size()
+    total_frames = frame_count or columns
+    if total_frames is None:
+        raise ValueError("Sprite sheet requires columns or frame_count.")
+
+    columns = columns or total_frames
     frame_width = sheet_width // columns
     frame_height = sheet_height // rows
 
@@ -35,7 +43,18 @@ def load_sprite_sheet_frames(
                 crop_rect = pygame.Rect(cell_crop).clip(frame.get_rect())
                 frame = frame.subsurface(crop_rect).copy()
 
-            frames.append(_prepare_frame(frame, target_height, trim_alpha, smooth=True))
+            frames.append(
+                _prepare_frame(
+                    surface=frame,
+                    target_height=target_height,
+                    trim_alpha=trim_alpha,
+                    smooth=smooth,
+                    canvas_size=canvas_size,
+                )
+            )
+
+            if len(frames) >= total_frames:
+                return frames
 
     return frames
 
@@ -44,13 +63,22 @@ def load_frame_sequence(
     image_paths: list[str | Path],
     target_height: int | None = None,
     trim_alpha: bool = True,
+    canvas_size: tuple[int, int] | None = None,
 ) -> list[pygame.Surface]:
     """Load animation frames from separate image files."""
     frames: list[pygame.Surface] = []
 
     for image_path in image_paths:
         frame = pygame.image.load(str(image_path)).convert_alpha()
-        frames.append(_prepare_frame(frame, target_height, trim_alpha, smooth=False))
+        frames.append(
+            _prepare_frame(
+                surface=frame,
+                target_height=target_height,
+                trim_alpha=trim_alpha,
+                smooth=False,
+                canvas_size=canvas_size,
+            )
+        )
 
     return frames
 
@@ -60,6 +88,7 @@ def _prepare_frame(
     target_height: int | None,
     trim_alpha: bool,
     smooth: bool,
+    canvas_size: tuple[int, int] | None,
 ) -> pygame.Surface:
     """Trim and scale one animation frame."""
     frame = surface
@@ -69,6 +98,9 @@ def _prepare_frame(
 
     if target_height is not None:
         frame = _scale_to_height(frame, target_height, smooth=smooth)
+
+    if canvas_size is not None:
+        frame = _place_on_canvas(frame, canvas_size)
 
     return frame
 
@@ -100,3 +132,15 @@ def _scale_to_height(
         return pygame.transform.smoothscale(surface, target_size)
 
     return pygame.transform.scale(surface, target_size)
+
+def _place_on_canvas(
+    surface: pygame.Surface,
+    canvas_size: tuple[int, int],
+) -> pygame.Surface:
+    """Place a frame on a fixed transparent canvas using midbottom anchor."""
+    canvas_width = max(1, max(canvas_size[0], surface.get_width()))
+    canvas_height = max(1, max(canvas_size[1], surface.get_height()))
+    canvas = pygame.Surface((canvas_width, canvas_height), pygame.SRCALPHA)
+    frame_rect = surface.get_rect(midbottom=(canvas_width // 2, canvas_height))
+    canvas.blit(surface, frame_rect)
+    return canvas

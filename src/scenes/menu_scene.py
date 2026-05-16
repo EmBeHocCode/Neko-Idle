@@ -17,42 +17,31 @@ from src.scenes.base_scene import BaseScene
 
 
 DEFAULT_NEKO_RENDER_HEIGHT = 160
+DEFAULT_NEKO_CANVAS_RATIO = 2
 
 DEFAULT_NEKO_ANIMATIONS = {
     "idle": {
-        "frame_files": [
-            "assets/images/characters/idle_1.png",
-            "assets/images/characters/idle_2.png",
-            "assets/images/characters/idle_3.png",
-        ],
+        "image": "res/images/characters/idle.png",
+        "frame_count": 4,
         "target_height": 160,
         "frame_duration": 0.22,
-        "trim_alpha": False,
+        "trim_alpha": True,
     },
     "walk": {
-        "frame_files": [
-            "assets/images/characters/walk_1.png",
-            "assets/images/characters/walk_2.png",
-            "assets/images/characters/walk_3.png",
-            "assets/images/characters/walk_4.png",
-            "assets/images/characters/walk_5.png",
-        ],
+        "image": "res/images/characters/walk.png",
+        "frame_count": 8,
         "target_height": 160,
         "frame_duration": 0.12,
-        "trim_alpha": False,
+        "trim_alpha": True,
         "move_speed": 150,
     },
-    "dash": {
-        "frame_files": [
-            "assets/images/characters/dash_1.png",
-            "assets/images/characters/dash_2.png",
-            "assets/images/characters/dash_3.png",
-        ],
+    "jump": {
+        "image": "res/images/characters/jump.png",
+        "frame_count": 12,
         "target_height": 160,
-        "frame_duration": 0.08,
-        "trim_alpha": False,
-        "distance": 260,
-        "duration": 0.22,
+        "frame_duration": 0.06,
+        "trim_alpha": True,
+        "duration": 0.72,
     },
 }
 
@@ -69,10 +58,8 @@ class MenuScene(BaseScene):
         self.animation_timer = 0.0
         self.neko_x = WINDOW_WIDTH // 2
         self.neko_direction = 1
-        self.is_neko_dashing = False
-        self.dash_elapsed = 0.0
-        self.dash_start_x = float(self.neko_x)
-        self.dash_target_x = float(self.neko_x)
+        self.is_neko_jumping = False
+        self.jump_elapsed = 0.0
         self.held_keys: set[int] = set()
         self.last_horizontal_key: int | None = None
 
@@ -91,13 +78,13 @@ class MenuScene(BaseScene):
         if event.key in (pygame.K_a, pygame.K_d):
             self.last_horizontal_key = event.key
 
-        if event.key in (pygame.K_LSHIFT, pygame.K_RSHIFT):
-            self._start_neko_dash()
+        if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
+            self._start_neko_jump()
 
     def update(self, delta_time: float) -> None:
         """Update menu animations."""
-        if self.is_neko_dashing:
-            self._update_neko_dash(delta_time)
+        if self.is_neko_jumping:
+            self._update_neko_jump(delta_time)
         else:
             self._update_neko_movement(delta_time)
 
@@ -133,6 +120,7 @@ class MenuScene(BaseScene):
                 image_paths=frame_paths,
                 target_height=int(active_config["target_height"]),
                 trim_alpha=bool(active_config.get("trim_alpha", True)),
+                canvas_size=self._get_canvas_size(active_config),
             )
             return
 
@@ -142,11 +130,14 @@ class MenuScene(BaseScene):
 
         self.neko_frames = load_sprite_sheet_frames(
             image_path=image_path,
-            columns=int(active_config["columns"]),
-            rows=int(active_config["rows"]),
+            columns=int(active_config.get("columns", active_config["frame_count"])),
+            rows=int(active_config.get("rows", 1)),
+            frame_count=int(active_config["frame_count"]),
             target_height=int(active_config["target_height"]),
             trim_alpha=bool(active_config.get("trim_alpha", True)),
             cell_crop=self._get_cell_crop(active_config),
+            canvas_size=self._get_canvas_size(active_config),
+            smooth=bool(active_config.get("smooth_scale", False)),
         )
 
     def _load_neko_animation_configs(self) -> dict[str, dict[str, Any]]:
@@ -159,6 +150,10 @@ class MenuScene(BaseScene):
         neko_render_height = int(
             neko_data.get("render_height", DEFAULT_NEKO_RENDER_HEIGHT)
         )
+        default_canvas_size = self._get_default_canvas_size(
+            neko_data,
+            neko_render_height,
+        )
 
         animation_configs: dict[str, dict[str, Any]] = {}
         for animation_name, default_config in DEFAULT_NEKO_ANIMATIONS.items():
@@ -169,6 +164,8 @@ class MenuScene(BaseScene):
             }
             if "target_height" not in custom_config:
                 animation_configs[animation_name]["target_height"] = neko_render_height
+            if "canvas_size" not in custom_config:
+                animation_configs[animation_name]["canvas_size"] = default_canvas_size
 
         return animation_configs
 
@@ -187,6 +184,30 @@ class MenuScene(BaseScene):
 
         return tuple(int(value) for value in crop)
 
+    def _get_canvas_size(
+        self,
+        animation_config: dict[str, Any],
+    ) -> tuple[int, int] | None:
+        """Return optional fixed canvas size from config."""
+        canvas_size = animation_config.get("canvas_size")
+        if not isinstance(canvas_size, list) or len(canvas_size) != 2:
+            return None
+
+        return int(canvas_size[0]), int(canvas_size[1])
+
+    def _get_default_canvas_size(
+        self,
+        neko_data: dict[str, Any],
+        render_height: int,
+    ) -> list[int]:
+        """Return global Neko canvas size, scaled with render height."""
+        canvas_size = neko_data.get("canvas_size")
+        if isinstance(canvas_size, list) and len(canvas_size) == 2:
+            return [int(canvas_size[0]), int(canvas_size[1])]
+
+        canvas_length = render_height * DEFAULT_NEKO_CANVAS_RATIO
+        return [canvas_length, canvas_length]
+
     def _get_frame_paths(self, animation_config: dict[str, Any]) -> list[Path]:
         """Return separate frame image paths if configured."""
         frame_files = animation_config.get("frame_files", [])
@@ -202,6 +223,7 @@ class MenuScene(BaseScene):
     def _set_neko_animation(self, animation_name: str) -> None:
         """Switch Neko animation and reset frame playback."""
         if animation_name == self.neko_animation_name:
+            self._ensure_neko_frames()
             return
 
         self.neko_animation_name = animation_name
@@ -239,61 +261,32 @@ class MenuScene(BaseScene):
         if not self.neko_frames:
             return 48
 
-        widest_frame = max(frame.get_width() for frame in self.neko_frames)
+        widest_frame = max(
+            frame.get_bounding_rect(min_alpha=1).width for frame in self.neko_frames
+        )
         return max(1, widest_frame // 2)
 
     def _get_neko_ground_y(self) -> int:
         """Return Neko's current ground line."""
         return WINDOW_HEIGHT - 72
 
-    def _start_neko_dash(self) -> None:
-        """Dash Neko forward by a fixed distance."""
-        if self.is_neko_dashing:
+    def _start_neko_jump(self) -> None:
+        """Play Neko's jump animation once."""
+        if self.is_neko_jumping:
             return
 
-        dash_config = self.neko_animation_configs["dash"]
-        move_direction = self._get_pressed_move_direction() or self.neko_direction
-        distance = float(dash_config.get("distance", 260))
-        self.neko_direction = move_direction
-        self._set_neko_animation("dash")
-        left_bound, right_bound = self._get_neko_move_bounds()
+        self.is_neko_jumping = True
+        self.jump_elapsed = 0.0
+        self._set_neko_animation("jump")
 
-        dash_start_x = float(self.neko_x)
-        is_dash_blocked_by_edge = (
-            (move_direction < 0 and dash_start_x <= left_bound)
-            or (move_direction > 0 and dash_start_x >= right_bound)
-        )
-        if is_dash_blocked_by_edge:
-            self._update_neko_movement(0.0)
-            return
+    def _update_neko_jump(self, delta_time: float) -> None:
+        """Update Neko's jump animation state."""
+        jump_config = self.neko_animation_configs["jump"]
+        jump_duration = max(0.01, float(jump_config.get("duration", 0.72)))
 
-        dash_target_x = max(
-            left_bound,
-            min(right_bound, self.neko_x + distance * move_direction),
-        )
-        if abs(dash_target_x - dash_start_x) < 1:
-            self.is_neko_dashing = False
-            self._update_neko_movement(0.0)
-            return
-
-        self.is_neko_dashing = True
-        self.dash_elapsed = 0.0
-        self.dash_start_x = dash_start_x
-        self.dash_target_x = dash_target_x
-
-    def _update_neko_dash(self, delta_time: float) -> None:
-        """Move Neko along the current dash burst."""
-        dash_config = self.neko_animation_configs["dash"]
-        dash_duration = max(0.01, float(dash_config.get("duration", 0.22)))
-
-        self.dash_elapsed += delta_time
-        progress = min(1.0, self.dash_elapsed / dash_duration)
-        self.neko_x = self.dash_start_x + (
-            self.dash_target_x - self.dash_start_x
-        ) * progress
-
-        if progress >= 1.0:
-            self.is_neko_dashing = False
+        self.jump_elapsed += delta_time
+        if self.jump_elapsed >= jump_duration:
+            self.is_neko_jumping = False
             self._update_neko_movement(0.0)
 
     def _update_neko_movement(self, delta_time: float) -> None:
