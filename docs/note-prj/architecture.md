@@ -58,6 +58,7 @@ build/
 - `src/core/player_animation.py` là hệ thống chính cho player animation hiện tại.
 - Mỗi sprite sheet player là một hàng ngang; `frame_width = sheet_width / frame_count`, `frame_height = sheet_height`.
 - `PlayerAnimationSystem` load toàn bộ sprite sheet một lần khi scene khởi động, cắt frame một lần và lưu `pygame.Surface` trong RAM.
+- `PlayerAnimationSystem.set_animation(..., restart=True)` dùng cho thao tác cần phản hồi ngay như `attack`, `dash` và `jump`; animation non-loop có thể kiểm tra kết thúc bằng `is_current_finished()`.
 - Animation idle của Neko dùng sprite sheet `res/images/characters/idle.png`.
 - Animation walk của Neko dùng sprite sheet `res/images/characters/walk.png`.
 - Animation jump của Neko dùng sprite sheet `res/images/characters/jump.png`.
@@ -75,8 +76,11 @@ build/
 - `MenuScene` hiện hỗ trợ nhiều character config từ `data/animations/characters.json`; danh sách preview lấy từ `forest_path.preview_characters`, và `Tab` đổi nhân vật đang xem.
 - Từ 2026-05-17, `forest_path.player_character` và `forest_path.preview_characters` ưu tiên `hero_01`; Neko vẫn nằm trong config nhưng không là nhân vật preview mặc định.
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
-- Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
-- Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
+- Giữ `A` hoặc `D` thì player đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
+- Giữ `Shift` trong khi đi thì player dùng animation `run` nếu nhân vật có clip `run`.
+- Bấm `Space`, `W` hoặc `Up` thì player phát animation `jump` ngay và dùng physics nhảy thật.
+- Bấm chuột trái thì player phát animation `attack` ngay.
+- Bấm `Ctrl` hoặc chuột phải thì player phát animation `dash` ngay và lướt né một đoạn ngắn theo hướng đang nhìn.
 - `jump` tách animation khỏi physics: animation chỉ phát sprite sheet `jump`, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
 - Khi vẽ player, `MenuScene` dùng `image.get_rect(midbottom=(self.x, self.y))`; không dùng `topleft`.
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.

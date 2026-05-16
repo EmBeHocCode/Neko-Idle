@@ -37,17 +37,26 @@ class PlayerAnimationSystem:
         self.current_frame_index = 0
         self.animation_timer = 0.0
 
-    def set_animation(self, animation_name: str) -> None:
+    def set_animation(self, animation_name: str, restart: bool = False) -> None:
         """Switch animation while preserving cached frames."""
         if animation_name not in self.clips:
             animation_name = "idle"
 
-        if animation_name == self.current_name:
+        if animation_name == self.current_name and not restart:
             return
 
         self.current_name = animation_name
         self.current_frame_index = 0
         self.animation_timer = 0.0
+
+    def has_animation(self, animation_name: str) -> bool:
+        """Return whether a clip exists for the animation name."""
+        return animation_name in self.clips
+
+    def is_current_finished(self) -> bool:
+        """Return whether the current non-looping clip reached its final frame."""
+        clip = self.clips[self.current_name]
+        return not clip.loop and self.current_frame_index >= len(clip.frames) - 1
 
     def update(self, delta_time: float) -> None:
         """Advance the current animation."""
@@ -132,7 +141,7 @@ def _load_prepared_animation_frames(
     prepared_frames: dict[str, PreparedAnimationFrames] = {}
     for animation_name, config in animation_configs.items():
         image_path = Path(str(config.get("image", "")))
-        if not image_path.exists():
+        if not image_path.is_file():
             continue
 
         prepared_frames[animation_name] = cut_horizontal_sprite_sheet(

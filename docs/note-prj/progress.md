@@ -2,6 +2,8 @@
 
 ## Trạng Thái Hiện Tại
 
+- Input preview của `hero_01` hiện hỗ trợ: `A/D` để đi, giữ `Shift` để run, `Space/W/Up` để jump, chuột trái để attack, `Ctrl` hoặc chuột phải để dash né.
+- Các action animation `attack`, `dash`, `jump` được restart ngay khi thao tác để người chơi thấy phản hồi lập tức.
 - Nhân vật đang được ưu tiên hoàn thiện là `hero_01`; Neko tạm giữ lại trong dữ liệu và chỉ chỉnh khi có yêu cầu riêng.
 - `forest_path` hiện dùng `hero_01` làm `player_character` và `preview_characters` mặc định.
 - Animation của `hero_01` dùng `scale_mode: "consistent"` với hệ số scale chung toàn bộ animation để tránh lệch kích thước khi đổi trạng thái.

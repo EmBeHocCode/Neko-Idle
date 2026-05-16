@@ -18,6 +18,8 @@ from src.scenes.base_scene import BaseScene
 
 DEFAULT_CHARACTER_ID = "hero_01"
 DEFAULT_RENDER_HEIGHT = 60
+DEFAULT_DASH_DISTANCE = 180
+DEFAULT_DASH_DURATION = 0.22
 DEFAULT_PLAYER_ANIMATIONS = {
     "idle": {
         "image": "res/images/characters/idle.png",
@@ -39,6 +41,16 @@ DEFAULT_PLAYER_ANIMATIONS = {
         "loop": False,
         "gravity": 1800,
         "jump_force": -650,
+    },
+    "attack": {
+        "frame_duration": 0.07,
+        "loop": False,
+    },
+    "dash": {
+        "frame_duration": 0.06,
+        "loop": False,
+        "distance": DEFAULT_DASH_DISTANCE,
+        "duration": DEFAULT_DASH_DURATION,
     },
 }
 
@@ -71,11 +83,23 @@ class MenuScene(BaseScene):
         self.gravity = self._get_jump_config_value("gravity", 1800)
         self.jump_force = self._get_jump_config_value("jump_force", -650)
         self.is_jumping = False
+        self.active_action: str | None = None
+        self.is_dashing = False
+        self.dash_timer = 0.0
+        self.dash_duration = DEFAULT_DASH_DURATION
+        self.dash_speed = DEFAULT_DASH_DISTANCE / DEFAULT_DASH_DURATION
         self.held_keys: set[int] = set()
         self.last_horizontal_key: int | None = None
 
     def handle_event(self, event: pygame.event.Event) -> None:
         """Handle menu input events."""
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                self._start_player_attack()
+            elif event.button == 3:
+                self._start_player_dash()
+            return
+
         if event.type == pygame.KEYUP:
             self.held_keys.discard(event.key)
             if event.key == self.last_horizontal_key:
@@ -92,18 +116,23 @@ class MenuScene(BaseScene):
         if event.key in (pygame.K_SPACE, pygame.K_w, pygame.K_UP):
             self._start_player_jump()
 
+        if event.key in (pygame.K_LCTRL, pygame.K_RCTRL):
+            self._start_player_dash()
+
         if event.key == pygame.K_TAB:
             self._switch_preview_character()
 
     def update(self, delta_time: float) -> None:
         """Update player movement and animation."""
-        self._update_horizontal_movement(delta_time)
+        if self.is_dashing:
+            self._update_dash_movement(delta_time)
+        else:
+            self._update_horizontal_movement(delta_time)
 
         if self.is_jumping:
             self._update_jump_physics(delta_time)
-        else:
-            self._update_ground_animation()
 
+        self._sync_player_animation()
         self.player_animation.update(delta_time)
 
     def draw(self, surface: pygame.Surface) -> None:
@@ -253,6 +282,9 @@ class MenuScene(BaseScene):
         self.gravity = self._get_jump_config_value("gravity", 1800)
         self.jump_force = self._get_jump_config_value("jump_force", -650)
         self.is_jumping = False
+        self.active_action = None
+        self.is_dashing = False
+        self.dash_timer = 0.0
         self.y = self.ground_y
 
     def _get_jump_config_value(self, key: str, fallback: float) -> float:
@@ -284,8 +316,9 @@ class MenuScene(BaseScene):
             return
 
         self.direction = move_direction
-        walk_config = self.player_animation.get_config("walk")
-        move_speed = float(walk_config.get("move_speed", 0))
+        locomotion_name = self._get_locomotion_animation_name()
+        locomotion_config = self.player_animation.get_config(locomotion_name)
+        move_speed = float(locomotion_config.get("move_speed", 0))
         if move_speed <= 0:
             return
 
@@ -293,22 +326,89 @@ class MenuScene(BaseScene):
         self.x += move_speed * move_direction * delta_time
         self.x = max(left_bound, min(right_bound, self.x))
 
+    def _get_locomotion_animation_name(self) -> str:
+        """Return walk or run based on held input."""
+        if self._is_run_pressed() and self.player_animation.has_animation("run"):
+            return "run"
+
+        return "walk"
+
+    def _is_run_pressed(self) -> bool:
+        """Return whether the player is holding a run key."""
+        return pygame.K_LSHIFT in self.held_keys or pygame.K_RSHIFT in self.held_keys
+
     def _update_ground_animation(self) -> None:
-        """Set idle or walk animation while player is grounded."""
+        """Set idle, walk or run animation while player is grounded."""
         if self._get_pressed_move_direction() == 0:
             self.player_animation.set_animation("idle")
             return
 
-        self.player_animation.set_animation("walk")
+        self.player_animation.set_animation(self._get_locomotion_animation_name())
+
+    def _sync_player_animation(self) -> None:
+        """Apply the highest-priority animation for the current state."""
+        if self.active_action and self.player_animation.is_current_finished():
+            self._finish_player_action()
+
+        if self.active_action:
+            return
+
+        if self.is_jumping:
+            self.player_animation.set_animation("jump")
+            return
+
+        self._update_ground_animation()
+
+    def _start_player_attack(self) -> None:
+        """Play attack animation immediately."""
+        if not self.player_animation.has_animation("attack"):
+            return
+
+        self.is_dashing = False
+        self.active_action = "attack"
+        self.player_animation.set_animation("attack", restart=True)
+
+    def _start_player_dash(self) -> None:
+        """Start dodge dash movement and animation."""
+        if not self.player_animation.has_animation("dash"):
+            return
+
+        move_direction = self._get_pressed_move_direction()
+        if move_direction != 0:
+            self.direction = move_direction
+
+        dash_config = self.player_animation.get_config("dash")
+        distance = float(dash_config.get("distance", DEFAULT_DASH_DISTANCE))
+        self.dash_duration = max(
+            0.01,
+            float(dash_config.get("duration", DEFAULT_DASH_DURATION)),
+        )
+        self.dash_speed = distance / self.dash_duration
+        self.dash_timer = 0.0
+        self.is_dashing = True
+        self.active_action = "dash"
+        self.player_animation.set_animation("dash", restart=True)
 
     def _start_player_jump(self) -> None:
         """Start jump physics and animation."""
         if self.is_jumping:
             return
 
+        self.active_action = None
+        self.is_dashing = False
         self.is_jumping = True
         self.velocity_y = self.jump_force
-        self.player_animation.set_animation("jump")
+        self.player_animation.set_animation("jump", restart=True)
+
+    def _update_dash_movement(self, delta_time: float) -> None:
+        """Move player quickly during dodge dash."""
+        self.dash_timer += delta_time
+        left_bound, right_bound = self._get_player_move_bounds()
+        self.x += self.dash_speed * self.direction * delta_time
+        self.x = max(left_bound, min(right_bound, self.x))
+
+        if self.dash_timer >= self.dash_duration:
+            self.is_dashing = False
 
     def _update_jump_physics(self, delta_time: float) -> None:
         """Update vertical jump physics."""
@@ -319,7 +419,13 @@ class MenuScene(BaseScene):
             self.y = self.ground_y
             self.velocity_y = 0.0
             self.is_jumping = False
-            self._update_ground_animation()
+
+    def _finish_player_action(self) -> None:
+        """Clear one-shot action state after its animation ends."""
+        if self.active_action == "dash":
+            self.is_dashing = False
+
+        self.active_action = None
 
     def _get_player_move_bounds(self) -> tuple[int, int]:
         """Return horizontal movement bounds for the player."""

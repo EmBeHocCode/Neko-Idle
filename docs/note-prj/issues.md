@@ -2,6 +2,8 @@
 
 ## Đang Theo Dõi
 
+- Đã xử lý yêu cầu action animation phản hồi tức thì: `jump`, `attack`, `dash` đều restart clip ngay khi input được bấm; `run` tự phát khi giữ `Shift` và đang di chuyển.
+- Đã xử lý rủi ro config action mặc định không có `image`: loader animation chỉ nhận đường dẫn là file thật, tránh load nhầm thư mục gốc.
 - Đã xử lý nguy cơ `hero_01` bị phóng to/thu nhỏ giữa các animation: `scale_mode: "consistent"` hiện dùng một scale factor chung cho toàn bộ animation của nhân vật.
 - Đã chuyển preview/player mặc định sang `hero_01`; Neko được giữ lại trong data và không chỉnh thêm cho tới khi có yêu cầu riêng.
 - Chưa có bug kỹ thuật trong gameplay vì gameplay chưa được triển khai.
