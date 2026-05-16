@@ -1,6 +1,5 @@
 """Main menu scene."""
 
-from math import pi, sin
 from pathlib import Path
 from typing import Any
 
@@ -42,8 +41,8 @@ DEFAULT_NEKO_ANIMATIONS = {
         "target_height": 160,
         "frame_duration": 0.06,
         "trim_alpha": True,
-        "duration": 0.72,
-        "jump_height": 120,
+        "gravity": 1800,
+        "jump_force": -650,
     },
 }
 
@@ -59,10 +58,11 @@ class MenuScene(BaseScene):
         self.current_frame_index = 0
         self.animation_timer = 0.0
         self.neko_x = WINDOW_WIDTH // 2
+        self.ground_y = float(self._get_neko_ground_y())
+        self.neko_y = self.ground_y
         self.neko_direction = 1
         self.is_neko_jumping = False
-        self.jump_elapsed = 0.0
-        self.jump_y_offset = 0.0
+        self.velocity_y = 0.0
         self.held_keys: set[int] = set()
         self.last_horizontal_key: int | None = None
 
@@ -86,10 +86,12 @@ class MenuScene(BaseScene):
 
     def update(self, delta_time: float) -> None:
         """Update menu animations."""
+        self._update_horizontal_movement(delta_time)
+
         if self.is_neko_jumping:
-            self._update_neko_jump(delta_time)
+            self._update_jump_physics(delta_time)
         else:
-            self._update_neko_movement(delta_time)
+            self._update_ground_animation()
 
         if not self.neko_frames:
             return
@@ -274,41 +276,37 @@ class MenuScene(BaseScene):
         return WINDOW_HEIGHT - 72
 
     def _start_neko_jump(self) -> None:
-        """Play Neko's jump animation once."""
+        """Start Neko's jump physics and animation."""
         if self.is_neko_jumping:
             return
 
+        jump_config = self.neko_animation_configs["jump"]
         self.is_neko_jumping = True
-        self.jump_elapsed = 0.0
-        self.jump_y_offset = 0.0
+        self.velocity_y = float(jump_config.get("jump_force", -650))
         self._set_neko_animation("jump")
 
-    def _update_neko_jump(self, delta_time: float) -> None:
-        """Update Neko's jump animation state."""
+    def _update_jump_physics(self, delta_time: float) -> None:
+        """Update Neko's vertical jump physics."""
         jump_config = self.neko_animation_configs["jump"]
-        jump_duration = max(0.01, float(jump_config.get("duration", 0.72)))
-        jump_height = float(jump_config.get("jump_height", 120))
+        gravity = float(jump_config.get("gravity", 1800))
 
-        self.jump_elapsed += delta_time
-        progress = min(1.0, self.jump_elapsed / jump_duration)
-        self.jump_y_offset = sin(pi * progress) * jump_height
+        self.velocity_y += gravity * delta_time
+        self.neko_y += self.velocity_y * delta_time
 
-        if progress >= 1.0:
+        if self.neko_y >= self.ground_y:
+            self.neko_y = self.ground_y
+            self.velocity_y = 0.0
             self.is_neko_jumping = False
-            self.jump_y_offset = 0.0
-            self._update_neko_movement(0.0)
+            self._update_ground_animation()
 
-    def _update_neko_movement(self, delta_time: float) -> None:
-        """Move Neko only when the player holds A or D."""
+    def _update_horizontal_movement(self, delta_time: float) -> None:
+        """Move Neko horizontally when the player holds A or D."""
         move_direction = self._get_pressed_move_direction()
 
         if move_direction == 0:
-            self._set_neko_animation("idle")
             return
 
         self.neko_direction = move_direction
-        self._set_neko_animation("walk")
-
         walk_config = self.neko_animation_configs["walk"]
         move_speed = float(walk_config.get("move_speed", 0))
         if move_speed <= 0:
@@ -317,6 +315,14 @@ class MenuScene(BaseScene):
         left_bound, right_bound = self._get_neko_move_bounds()
         self.neko_x += move_speed * move_direction * delta_time
         self.neko_x = max(left_bound, min(right_bound, self.neko_x))
+
+    def _update_ground_animation(self) -> None:
+        """Set idle or walk animation while Neko is on the ground."""
+        if self._get_pressed_move_direction() == 0:
+            self._set_neko_animation("idle")
+            return
+
+        self._set_neko_animation("walk")
 
     def _draw_neko(self, surface: pygame.Surface) -> None:
         """Draw the animated Neko preview."""
@@ -337,4 +343,4 @@ class MenuScene(BaseScene):
 
     def _get_neko_draw_y(self) -> int:
         """Return Neko's current draw baseline."""
-        return round(self._get_neko_ground_y() - self.jump_y_offset)
+        return round(self.neko_y)

@@ -67,7 +67,7 @@ build/
 - Không giữ phím di chuyển thì Neko ở trạng thái `idle`.
 - Giữ `A` hoặc `D` thì Neko đổi sang `walk`, di chuyển trái/phải và lật mặt theo hướng đi.
 - Bấm `Space`, `W` hoặc `Up` thì Neko phát animation `jump`; giai đoạn hiện tại không dùng animation `dash`.
-- `jump` tách pose khỏi chuyển động: sprite sheet quyết định frame/pose, còn scene tính `jump_y_offset = sin(pi * progress) * jump_height` để Neko nhảy lên rồi rơi xuống theo `duration`.
+- `jump` tách pose khỏi physics: sprite sheet quyết định frame/pose, còn scene dùng `velocity_y`, `gravity`, `jump_force`, `is_jumping` và `ground_y` để nhân vật bay lên, rơi xuống và tiếp đất.
 - `MenuScene` tự lưu phím đang giữ qua `KEYDOWN`/`KEYUP` để tránh lỗi đọc input không ổn định ở rìa màn hình.
 - Nếu `A` và `D` cùng được giữ, phím hướng được bấm gần nhất sẽ được ưu tiên để đổi hướng mượt hơn.
 - Biên trái/phải được tính theo nửa chiều rộng frame hiện tại, nên Neko có thể chạm sát mép client nhưng sprite không bị mất khỏi màn; đây là điểm chuẩn để sau này gắn trigger chuyển map.
